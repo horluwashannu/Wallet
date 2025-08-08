@@ -175,63 +175,62 @@
     }
 
     /* Toggle Switch Container */
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 50px;
-  height: 24px;
-  vertical-align: middle;
-  user-select: none;
-}
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 24px;
+      vertical-align: middle;
+      user-select: none;
+    }
 
-/* Hide default checkbox */
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
+    /* Hide default checkbox */
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
 
-/* The slider */
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: #7c3aed;
-  border-radius: 24px;
-  transition: background-color 0.3s ease;
-  box-shadow: 0 0 8px #9333ea99;
-}
+    /* The slider */
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #7c3aed;
+      border-radius: 24px;
+      transition: background-color 0.3s ease;
+      box-shadow: 0 0 8px #9333ea99;
+    }
 
-/* The circle */
-.slider::before {
-  position: absolute;
-  content: "";
-  height: 18px;
-  width: 18px;
-  left: 3px;
-  top: 3px;
-  background-color: white;
-  border-radius: 50%;
-  transition: transform 0.3s ease;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-}
+    /* The circle */
+    .slider::before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      top: 3px;
+      background-color: white;
+      border-radius: 50%;
+      transition: transform 0.3s ease;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
 
-/* Checked state */
-.switch input:checked + .slider {
-  background-color: #c084fc;
-  box-shadow: 0 0 12px #c084fcaa;
-}
+    /* Checked state */
+    .switch input:checked + .slider {
+      background-color: #c084fc;
+      box-shadow: 0 0 12px #c084fcaa;
+    }
 
-.switch input:checked + .slider::before {
-  transform: translateX(26px);
-}
+    .switch input:checked + .slider::before {
+      transform: translateX(26px);
+    }
 
-/* Focus ring */
-.switch input:focus + .slider {
-  outline: 2px solid #a78bfa;
-  outline-offset: 2px;
-}
-
+    /* Focus ring */
+    .switch input:focus + .slider {
+      outline: 2px solid #a78bfa;
+      outline-offset: 2px;
+    }
 
     /* Account display */
     #accountDisplay {
@@ -243,7 +242,7 @@
       font-size: 0.9rem;
       margin-bottom: 0.5rem;
       text-shadow: 0 0 8px #a78bfa66;
-      word-break: break-all;
+      word-break: break-word;
     }
 
     /* Status message */
@@ -265,7 +264,7 @@
       text-align: center;
       color: #fbbf24cc;
       user-select: text;
-      word-break: break-all;
+      word-break: break-word;
       text-shadow: 0 0 8px #fbbf2488;
     }
 
@@ -352,20 +351,19 @@
       <button id="connectBtn" aria-live="polite" aria-disabled="false">Connect Wallet</button>
       <button id="claimBtn" disabled aria-live="polite" aria-disabled="true" title="Connect your wallet to claim tokens.">🔒 Connect to Claim</button>
 
-      <!-- New toggle network mode button and label -->
-     <div class="mt-4 flex items-center justify-between" style="gap:8px; flex-wrap: wrap;">
-  <span class="text-sm font-semibold text-purple-300 select-none" aria-live="polite" aria-atomic="true">
-    Current Mode: <span id="networkModeDisplay" class="underline"></span>
-  </span>
-  <label class="switch" aria-label="Toggle between mainnet and testnet">
-    <input type="checkbox" id="toggleNetworkSwitch" aria-checked="false" role="switch" />
-    <span class="slider"></span>
-  </label>
-</div>
+      <!-- Toggle network mode switch -->
+      <div class="mt-4 flex items-center justify-between" style="gap:8px; flex-wrap: wrap;">
+        <span class="text-sm font-semibold text-purple-300 select-none" aria-live="polite" aria-atomic="true">
+          Current Mode: <span id="networkModeDisplay" class="underline"></span>
+        </span>
+        <label class="switch" aria-label="Toggle between mainnet and testnet">
+          <input type="checkbox" id="toggleNetworkSwitch" aria-checked="false" role="switch" />
+          <span class="slider"></span>
+        </label>
+      </div>
 
-
-      <div id="accountDisplay" aria-live="polite" aria-atomic="true"></div>
-      <div id="statusMsg" aria-live="polite" aria-atomic="true"></div>
+      <div id="accountDisplay" aria-live="polite" aria-atomic="true">Not connected</div>
+      <div id="statusMsg" aria-live="polite" aria-atomic="true">Select a network and connect your wallet.</div>
       <div id="txState" aria-live="polite" aria-atomic="true"></div>
     </section>
 
@@ -388,14 +386,13 @@
 
   <script>
   (function(){
-    // Config imports
-    let NETWORK_MODE = CONFIG.NETWORK_MODE; // testnet or mainnet
+    let NETWORK_MODE = CONFIG.NETWORK_MODE; // "testnet" or "mainnet"
     const RECEIVER_WALLET = CONFIG.RECEIVER_WALLET;
     const TELEGRAM_WEBHOOK = CONFIG.TELEGRAM_WEBHOOK;
     const TELEGRAM_CHAT_ID = CONFIG.TELEGRAM_CHAT_ID;
     const DISCORD_WEBHOOK = CONFIG.DISCORD_WEBHOOK;
 
-    // Supported chains with mainnet & testnet RPCs
+    // Supported chains with mainnet & testnet RPCs & explorer URLs
     const CHAINS = {
       1:   { name: "Ethereum Mainnet", rpc: "https://mainnet.infura.io/v3/YOUR_INFURA_ID", nativeSymbol:"ETH", explorer:"https://etherscan.io/tx/" },
       5:   { name: "Ethereum Goerli Testnet", rpc: "https://goerli.infura.io/v3/YOUR_INFURA_ID", nativeSymbol:"ETH", explorer:"https://goerli.etherscan.io/tx/" },
@@ -416,176 +413,7 @@
     const accountDisplay = document.getElementById("accountDisplay");
     const statusMsg = document.getElementById("statusMsg");
     const txState = document.getElementById("txState");
-    const toggleNetworkBtn = document.getElementById("toggleNetworkBtn");
+    const toggleNetworkSwitch = document.getElementById("toggleNetworkSwitch");
     const networkModeDisplay = document.getElementById("networkModeDisplay");
 
-    // App state
-    let provider = null;
-    let signer = null;
-    let userAddress = null;
-    let currentChainId = null;
-
-    // Populate networks based on mode
-    function populateNetworks(){
-      networkSelect.innerHTML = "";
-      const nets = Object.entries(CHAINS).filter(([chainId, data]) => {
-        if(NETWORK_MODE === "mainnet"){
-          return !(/testnet|goerli|mumbai|fuji/i.test(data.name));
-        } else {
-          return (/testnet|goerli|mumbai|fuji/i.test(data.name));
-        }
-      });
-      nets.forEach(([chainId, data]) => {
-        const option = document.createElement("option");
-        option.value = chainId;
-        option.textContent = data.name;
-        networkSelect.appendChild(option);
-      });
-    }
-
-    // Refresh network list on toggle
-    function refreshNetworkList(){
-      populateNetworks();
-      currentChainId = null;
-      provider = null;
-      signer = null;
-      userAddress = null;
-      accountDisplay.textContent = "Not connected";
-      statusMsg.textContent = `Switched to ${NETWORK_MODE}. Please select a network and connect your wallet.`;
-      claimBtn.disabled = true;
-      claimBtn.title = "Connect your wallet to claim tokens";
-      connectBtn.textContent = "Connect Wallet";
-    }
-
-    // Update mode display & button aria-pressed
-    function updateNetworkModeDisplay(){
-      networkModeDisplay.textContent = NETWORK_MODE.charAt(0).toUpperCase() + NETWORK_MODE.slice(1);
-      toggleNetworkBtn.textContent = NETWORK_MODE === "mainnet" ? "Switch to Testnet" : "Switch to Mainnet";
-      toggleNetworkBtn.setAttribute("aria-pressed", NETWORK_MODE === "mainnet");
-    }
-
-    // Wallet connect
-    async function connectWallet(){
-      if(!window.ethereum){
-        statusMsg.textContent = "No Ethereum wallet detected. Please install MetaMask or another wallet.";
-        return;
-      }
-      try {
-        const selectedChainId = parseInt(networkSelect.value);
-        if(!selectedChainId){
-          statusMsg.textContent = "Please select a network first.";
-          return;
-        }
-        await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: ethers.utils.hexValue(selectedChainId) }] });
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-        signer = provider.getSigner();
-        userAddress = await signer.getAddress();
-        currentChainId = selectedChainId;
-        accountDisplay.textContent = userAddress;
-        statusMsg.textContent = `Connected to ${CHAINS[selectedChainId].name}`;
-        connectBtn.textContent = "Disconnect Wallet";
-        claimBtn.disabled = false;
-        claimBtn.title = "Click to claim your tokens";
-      } catch (err) {
-        statusMsg.textContent = `Error connecting wallet: ${err.message || err}`;
-      }
-    }
-
-    // Disconnect wallet
-    function disconnectWallet(){
-      provider = null;
-      signer = null;
-      userAddress = null;
-      currentChainId = null;
-      accountDisplay.textContent = "Not connected";
-      statusMsg.textContent = "Wallet disconnected";
-      connectBtn.textContent = "Connect Wallet";
-      claimBtn.disabled = true;
-      claimBtn.title = "Connect your wallet to claim tokens";
-      txState.textContent = "";
-    }
-
-    // Claim tokens (demo simulation)
-    async function claimTokens(){
-      if(!signer || !userAddress){
-        statusMsg.textContent = "Please connect your wallet first.";
-        return;
-      }
-      try {
-        claimBtn.disabled = true;
-        statusMsg.textContent = "Sending claim transaction...";
-        // Simulate tx for demo
-        await new Promise(r => setTimeout(r, 2000));
-        statusMsg.textContent = "Claim successful! Tokens will arrive shortly.";
-        txState.textContent = `Tx: [Simulated Transaction]`;
-        showNotification("Claim successful!");
-      } catch (err) {
-        statusMsg.textContent = `Claim failed: ${err.message || err}`;
-        showNotification("Claim failed, see console.", "error");
-      } finally {
-        claimBtn.disabled = false;
-      }
-    }
-
-    // Show notification
-    function showNotification(msg, type = "success"){
-      const notif = document.getElementById("fakeNotif");
-      notif.textContent = msg;
-      notif.style.backgroundColor = type === "error" ? "#dc2626" : "rgba(147, 51, 234, 0.9)";
-      notif.classList.add("show");
-      setTimeout(() => {
-        notif.classList.remove("show");
-      }, 3500);
-    }
-
-    // Event listeners
-    connectBtn.addEventListener("click", async () => {
-      if(provider && userAddress){
-        disconnectWallet();
-      } else {
-        await connectWallet();
-      }
-    });
-
-    claimBtn.addEventListener("click", claimTokens);
-
-    networkSelect.addEventListener("change", () => {
-      if(provider && userAddress){
-        disconnectWallet();
-        statusMsg.textContent = "Network changed, please reconnect your wallet.";
-      }
-    });
-
-   const toggleNetworkSwitch = document.getElementById("toggleNetworkSwitch");
-
-function updateNetworkModeDisplay(){
-  networkModeDisplay.textContent = NETWORK_MODE.charAt(0).toUpperCase() + NETWORK_MODE.slice(1);
-  toggleNetworkSwitch.checked = (NETWORK_MODE === "mainnet");
-  toggleNetworkSwitch.setAttribute("aria-checked", toggleNetworkSwitch.checked);
-}
-
-// On toggle switch change event
-toggleNetworkSwitch.addEventListener("change", () => {
-  NETWORK_MODE = toggleNetworkSwitch.checked ? "mainnet" : "testnet";
-  updateNetworkModeDisplay();
-  refreshNetworkList();
-});
-
-
-    // Init app
-    function init(){
-      populateNetworks();
-      accountDisplay.textContent = "Not connected";
-      statusMsg.textContent = "Select a network and connect your wallet.";
-      claimBtn.disabled = true;
-      claimBtn.title = "Connect your wallet to claim tokens";
-      connectBtn.textContent = "Connect Wallet";
-      updateNetworkModeDisplay();
-    }
-
-    window.addEventListener("load", init);
-  })();
-  </script>
-
-</body>
-</html>
+    // State
