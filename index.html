@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Multi-Network Airdrop Claim DApp</title>
+<title>Multi-Network Airdrop Claim with Switch</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 
@@ -35,10 +35,10 @@
     100% { background-position: 0% 50%; }
   }
   #app {
-    background: rgba(0, 0, 30, 0.8);
+    background: rgba(0, 0, 30, 0.85);
     backdrop-filter: blur(12px);
     border-radius: 20px;
-    max-width: 600px;
+    max-width: 520px;
     width: 100%;
     box-shadow: 0 0 30px rgba(110, 49, 250, 0.6);
     padding: 2rem;
@@ -67,6 +67,7 @@
     color: white;
     user-select: none;
     transition: all 0.3s ease;
+    margin-top: 1rem;
   }
   button:disabled {
     background: #4c1d95aa;
@@ -91,86 +92,120 @@
     user-select: none;
     text-shadow: 0 0 8px #fbbf2488;
   }
-  #fakeNotif {
-    position: fixed;
-    bottom: 2rem;
-    right: 2rem;
-    background: rgba(147, 51, 234, 0.9);
-    color: white;
-    font-weight: 700;
-    padding: 1rem 1.4rem;
-    border-radius: 12px;
-    font-size: 1rem;
-    box-shadow: 0 0 20px #c084fc;
-    animation: slideUpFade 3.5s ease forwards;
-    opacity: 0;
-    pointer-events: none;
+  #switchContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1.5rem;
+    gap: 1rem;
     user-select: none;
-    max-width: 320px;
-    z-index: 9999;
   }
-  #fakeNotif.show {
-    opacity: 1;
-    pointer-events: auto;
+  .switch-label {
+    font-weight: 700;
+    font-size: 1rem;
   }
-  @keyframes slideUpFade {
-    0% { transform: translateY(30px); opacity: 0; }
-    10%, 90% { transform: translateY(0); opacity: 1; }
-    100% { transform: translateY(-20px); opacity: 0; }
+  /* Horizontal switch */
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 70px;
+    height: 32px;
+  }
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #555;
+    transition: .4s;
+    border-radius: 32px;
+  }
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 3px;
+    bottom: 3px;
+    background-color: #eee;
+    transition: .4s;
+    border-radius: 50%;
+  }
+  input:checked + .slider {
+    background: linear-gradient(90deg, #7c3aed, #c084fc);
+  }
+  input:checked + .slider:before {
+    transform: translateX(38px);
   }
 </style>
 </head>
 <body>
   <main id="app" role="main" aria-label="Airdrop Claim Application">
     <h1>Multi-Network Airdrop Claim</h1>
-    <p>Connect your wallet on any supported network (Ethereum, BSC, Polygon, Avalanche, Arbitrum, Optimism) mainnet or testnet, and claim your tokens securely.</p>
+    <p>Connect your wallet and toggle Mainnet / Testnet below to select which contract to interact with. The wallet network is detected automatically and must match supported networks.</p>
+
+    <div id="switchContainer" aria-label="Toggle Mainnet or Testnet for contract">
+      <span class="switch-label">Testnet</span>
+      <label class="switch" aria-checked="false" role="switch" tabindex="0">
+        <input type="checkbox" id="networkSwitch" aria-describedby="switchDesc" />
+        <span class="slider"></span>
+      </label>
+      <span class="switch-label">Mainnet</span>
+    </div>
+    <div id="switchDesc" class="sr-only">Toggle to switch contract between Testnet (off) and Mainnet (on)</div>
 
     <button id="connectBtn" aria-live="polite" aria-disabled="false">Connect Wallet</button>
-    <button id="claimBtn" disabled aria-live="polite" aria-disabled="true" title="Connect your wallet to claim tokens.">🔒 Connect to Claim</button>
+    <button id="claimBtn" disabled aria-live="polite" aria-disabled="true" title="Connect your wallet and use supported network to claim tokens.">🔒 Claim Tokens</button>
 
     <div id="networkDisplay" aria-live="polite" aria-atomic="true"></div>
     <div id="accountDisplay" aria-live="polite" aria-atomic="true"></div>
     <div id="statusMsg" aria-live="polite" aria-atomic="true"></div>
   </main>
 
-  <div id="fakeNotif" role="alert" aria-live="assertive" aria-atomic="true"></div>
-
 <script>
-(async function() {
-  // Config: replace these placeholders with your real data
-  const CONFIG = {
-    CONTRACT_ADDRESS: "YOUR_CONTRACT_ADDRESS",
-    CONTRACT_ABI: [/* Paste your contract ABI JSON array here */],
+(async () => {
+  // --- CONFIGURATION - replace with your actual data ---
+
+  // Mainnet contract
+  const MAINNET = {
+    CONTRACT_ADDRESS: "YOUR_MAINNET_CONTRACT_ADDRESS",
+    CONTRACT_ABI: [ /* Paste your MAINNET contract ABI JSON here */ ],
+  };
+
+  // Testnet contract
+  const TESTNET = {
+    CONTRACT_ADDRESS: "YOUR_TESTNET_CONTRACT_ADDRESS",
+    CONTRACT_ABI: [ /* Paste your TESTNET contract ABI JSON here */ ],
+  };
+
+  // Supported chains for mainnet and testnet (chainId: name)
+  const SUPPORTED_CHAINS = {
+    1: "Ethereum Mainnet",
+    5: "Ethereum Goerli Testnet",
+    56: "BSC Mainnet",
+    97: "BSC Testnet",
+    137: "Polygon Mainnet",
+    80001: "Polygon Mumbai Testnet",
+    43114: "Avalanche Mainnet",
+    43113: "Avalanche Fuji Testnet",
+    42161: "Arbitrum One",
+    421613: "Arbitrum Goerli Testnet",
+    10: "Optimism Mainnet",
+    420: "Optimism Goerli Testnet"
+  };
+
+  // Telegram & Discord config - replace with yours
+  const NOTIFY = {
     TELEGRAM_WEBHOOK: "YOUR_TELEGRAM_BOT_API_URL",
     TELEGRAM_CHAT_ID: "YOUR_TELEGRAM_CHAT_ID",
-    DISCORD_WEBHOOK: "YOUR_DISCORD_WEBHOOK_URL",
+    DISCORD_WEBHOOK: "YOUR_DISCORD_WEBHOOK_URL"
   };
 
-  // Supported chains with details (mainnet and testnets)
-  const CHAINS = {
-    1:   { name: "Ethereum Mainnet", explorer: "https://etherscan.io/tx/" },
-    5:   { name: "Ethereum Goerli Testnet", explorer: "https://goerli.etherscan.io/tx/" },
-    56:  { name: "BSC Mainnet", explorer: "https://bscscan.com/tx/" },
-    97:  { name: "BSC Testnet", explorer: "https://testnet.bscscan.com/tx/" },
-    137: { name: "Polygon Mainnet", explorer: "https://polygonscan.com/tx/" },
-    80001:{ name: "Polygon Mumbai Testnet", explorer: "https://mumbai.polygonscan.com/tx/" },
-    43114:{ name: "Avalanche Mainnet", explorer: "https://snowtrace.io/tx/" },
-    43113:{ name: "Avalanche Fuji Testnet", explorer: "https://testnet.snowtrace.io/tx/" },
-    42161:{ name: "Arbitrum One", explorer: "https://arbiscan.io/tx/" },
-    421613:{ name: "Arbitrum Goerli Testnet", explorer: "https://goerli.arbiscan.io/tx/" },
-    10:  { name: "Optimism Mainnet", explorer: "https://optimistic.etherscan.io/tx/" },
-    420:  { name: "Optimism Goerli Testnet", explorer: "https://goerli-optimism.etherscan.io/tx/" }
-  };
-
-  // UI elements
-  const connectBtn = document.getElementById("connectBtn");
-  const claimBtn = document.getElementById("claimBtn");
-  const networkDisplay = document.getElementById("networkDisplay");
-  const accountDisplay = document.getElementById("accountDisplay");
-  const statusMsg = document.getElementById("statusMsg");
-  const fakeNotif = document.getElementById("fakeNotif");
-
-  // Web3Modal setup
+  // Web3Modal provider options
   const providerOptions = {
     walletconnect: {
       package: window.WalletConnectProvider.default,
@@ -195,99 +230,147 @@
       package: CoinbaseWalletSDK,
       options: {
         appName: "Multi-Network Airdrop Claim DApp",
-        infuraId: "YOUR_INFURA_ID", // Optional
-        rpc: "",
-        chainId: 1,
+        infuraId: "YOUR_INFURA_ID",
         darkMode: false
       }
     }
   };
 
-  const web3Modal = new window.Web3Modal.default({
+  // DOM Elements
+  const connectBtn = document.getElementById("connectBtn");
+  const claimBtn = document.getElementById("claimBtn");
+  const networkDisplay = document.getElementById("networkDisplay");
+  const accountDisplay = document.getElementById("accountDisplay");
+  const statusMsg = document.getElementById("statusMsg");
+  const networkSwitch = document.getElementById("networkSwitch");
+
+  let web3Modal = null;
+  let provider = null;
+  let signer = null;
+  let contract = null;
+  let currentChainId = null;
+  let connectedAccount = null;
+
+  // Initialize Web3Modal
+  web3Modal = new window.Web3Modal.default({
     cacheProvider: true,
     providerOptions
   });
 
-  let web3Provider = null;
-  let signer = null;
-  let contract = null;
-
-  // Helper: Show notification
-  function showNotification(msg, type = "success") {
-    fakeNotif.textContent = msg;
-    fakeNotif.style.backgroundColor = type === "error" ? "#dc2626" : "rgba(147, 51, 234, 0.9)";
-    fakeNotif.classList.add("show");
-    setTimeout(() => fakeNotif.classList.remove("show"), 3500);
+  // Helper: Show status message
+  function setStatus(msg, isError = false) {
+    statusMsg.textContent = msg;
+    statusMsg.style.color = isError ? "#f87171" : "#fbbf24";
   }
 
-  // Update UI when disconnected
+  // Helper: Show network and account
+  function updateUI() {
+    if (connectedAccount) {
+      accountDisplay.textContent = `Connected: ${connectedAccount}`;
+    } else {
+      accountDisplay.textContent = "";
+    }
+    if (currentChainId && SUPPORTED_CHAINS[currentChainId]) {
+      networkDisplay.textContent = `Network: ${SUPPORTED_CHAINS[currentChainId]}`;
+    } else if (currentChainId) {
+      networkDisplay.textContent = `Network: Unsupported (Chain ID ${currentChainId})`;
+    } else {
+      networkDisplay.textContent = "";
+    }
+  }
+
+  // Reset UI
   function resetUI() {
-    networkDisplay.textContent = "";
-    accountDisplay.textContent = "";
-    statusMsg.textContent = "Connect your wallet";
+    connectedAccount = null;
+    currentChainId = null;
+    contract = null;
+    provider = null;
+    signer = null;
+    updateUI();
+    setStatus("Connect your wallet");
     claimBtn.disabled = true;
-    claimBtn.title = "Connect your wallet to claim tokens.";
+    claimBtn.title = "Connect your wallet and use supported network to claim tokens.";
     connectBtn.textContent = "Connect Wallet";
   }
 
-  // Check if chainId is supported
+  // Get config based on switch state
+  function getConfig() {
+    return networkSwitch.checked ? MAINNET : TESTNET;
+  }
+
+  // Initialize contract instance
+  function initContract() {
+    if (!signer) {
+      setStatus("Signer not available", true);
+      return false;
+    }
+    const cfg = getConfig();
+    contract = new ethers.Contract(cfg.CONTRACT_ADDRESS, cfg.CONTRACT_ABI, signer);
+    return true;
+  }
+
+  // Check if chain is supported
   function isSupportedChain(chainId) {
-    return Object.hasOwnProperty.call(CHAINS, chainId);
+    return Object.hasOwnProperty.call(SUPPORTED_CHAINS, chainId);
   }
 
-  // Setup contract instance
-  function setupContract() {
-    contract = new ethers.Contract(CONFIG.CONTRACT_ADDRESS, CONFIG.CONTRACT_ABI, signer);
-  }
-
-  // Connect wallet handler
+  // Connect wallet
   async function connectWallet() {
     try {
-      const instance = await web3Modal.connect();
-      web3Provider = new ethers.providers.Web3Provider(instance);
-      signer = web3Provider.getSigner();
+      provider = await web3Modal.connect();
+      const ethersProvider = new ethers.providers.Web3Provider(provider);
+      signer = ethersProvider.getSigner();
 
-      // Listen for network changes
-      instance.on("chainChanged", (chainIdHex) => {
-        const chainId = parseInt(chainIdHex, 16);
-        onNetworkChanged(chainId);
-      });
+      // Detect initial network & account
+      const network = await ethersProvider.getNetwork();
+      currentChainId = network.chainId;
+      connectedAccount = await signer.getAddress();
 
-      // Listen for accounts changed
-      instance.on("accountsChanged", (accounts) => {
+      // Setup contract instance
+      if (!initContract()) return;
+
+      // Check chain support
+      if (!isSupportedChain(currentChainId)) {
+        setStatus(`Unsupported network: Chain ID ${currentChainId}. Please switch your wallet network.`, true);
+        claimBtn.disabled = true;
+        claimBtn.title = "Switch to supported network";
+      } else {
+        setStatus("Wallet connected and network supported.");
+        claimBtn.disabled = false;
+        claimBtn.title = "Click to claim your tokens";
+      }
+
+      updateUI();
+      connectBtn.textContent = "Disconnect Wallet";
+
+      // Listen to accounts changed
+      provider.on("accountsChanged", (accounts) => {
         if (accounts.length === 0) {
           disconnectWallet();
         } else {
-          accountDisplay.textContent = accounts[0];
+          connectedAccount = accounts[0];
+          updateUI();
         }
       });
 
-      // Detect current network
-      const network = await web3Provider.getNetwork();
-      const chainId = network.chainId;
+      // Listen to network changed
+      provider.on("chainChanged", (chainIdHex) => {
+        currentChainId = parseInt(chainIdHex, 16);
+        updateUI();
+        if (!isSupportedChain(currentChainId)) {
+          setStatus(`Unsupported network: Chain ID ${currentChainId}. Please switch your wallet network.`, true);
+          claimBtn.disabled = true;
+          claimBtn.title = "Switch to supported network";
+        } else {
+          setStatus("Network changed to supported network.");
+          claimBtn.disabled = false;
+          claimBtn.title = "Click to claim your tokens";
+        }
+        initContract();
+      });
 
-      if (!isSupportedChain(chainId)) {
-        statusMsg.textContent = `Unsupported network: Chain ID ${chainId}. Please switch your wallet network.`;
-        claimBtn.disabled = true;
-        claimBtn.title = "Switch to supported network";
-        networkDisplay.textContent = `Connected network: Unknown (${chainId})`;
-        accountDisplay.textContent = await signer.getAddress();
-        connectBtn.textContent = "Disconnect Wallet";
-        return;
-      }
-
-      // Supported network - proceed
-      setupContract();
-
-      const userAddress = await signer.getAddress();
-      accountDisplay.textContent = userAddress;
-      networkDisplay.textContent = `Connected network: ${CHAINS[chainId].name}`;
-      statusMsg.textContent = "Wallet connected and network supported.";
-      connectBtn.textContent = "Disconnect Wallet";
-      claimBtn.disabled = false;
-      claimBtn.title = "Click to claim your tokens";
-    } catch (error) {
-      statusMsg.textContent = "Could not connect wallet: " + (error.message || error);
+    } catch (err) {
+      setStatus(`Could not connect wallet: ${err.message || err}`, true);
       resetUI();
     }
   }
@@ -297,75 +380,61 @@
     if (web3Modal) {
       await web3Modal.clearCachedProvider();
     }
-    web3Provider = null;
-    signer = null;
-    contract = null;
     resetUI();
   }
 
-  // Handle network change
-  async function onNetworkChanged(chainId) {
-    if (!isSupportedChain(chainId)) {
-      statusMsg.textContent = `Unsupported network: Chain ID ${chainId}. Please switch your wallet network.`;
-      claimBtn.disabled = true;
-      claimBtn.title = "Switch to supported network";
-      networkDisplay.textContent = `Connected network: Unknown (${chainId})`;
-      return;
-    }
-    statusMsg.textContent = `Network changed to ${CHAINS[chainId].name}.`;
-    networkDisplay.textContent = `Connected network: ${CHAINS[chainId].name}`;
-    claimBtn.disabled = false;
-    claimBtn.title = "Click to claim your tokens";
-    setupContract();
-  }
-
-  // Claim tokens function (sample simple call, replace method name/params as needed)
+  // Claim tokens
   async function claimTokens() {
     if (!contract) {
-      statusMsg.textContent = "Contract not initialized.";
+      setStatus("Contract not initialized.", true);
       return;
     }
     claimBtn.disabled = true;
-    statusMsg.textContent = "Sending claim transaction...";
+    setStatus("Sending claim transaction...");
 
     try {
-      // Example claim method call - replace with your actual contract method and params
+      // Replace this with your real contract method & params
       const tx = await contract.claimTokens();
-      statusMsg.textContent = "Transaction sent. Waiting for confirmation...";
+      setStatus("Transaction sent. Waiting for confirmation...");
       await tx.wait();
 
-      statusMsg.textContent = "Claim successful!";
+      setStatus("Claim successful!");
 
       // Notify Telegram
-      fetch(`${CONFIG.TELEGRAM_WEBHOOK}?chat_id=${CONFIG.TELEGRAM_CHAT_ID}&text=${encodeURIComponent(
-        `New airdrop claim by ${await signer.getAddress()} on network: ${networkDisplay.textContent}`
-      )}`).catch(() => {});
+      try {
+        const address = connectedAccount;
+        const networkName = SUPPORTED_CHAINS[currentChainId] || `Chain ID ${currentChainId}`;
+        fetch(`${NOTIFY.TELEGRAM_WEBHOOK}?chat_id=${NOTIFY.TELEGRAM_CHAT_ID}&text=${encodeURIComponent(`New airdrop claim by ${address} on network: ${networkName}`)}`);
+      } catch {}
 
       // Notify Discord
-      fetch(CONFIG.DISCORD_WEBHOOK, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          content: `New airdrop claim by ${await signer.getAddress()} on network: ${networkDisplay.textContent}`
-        }),
-      }).catch(() => {});
+      try {
+        fetch(NOTIFY.DISCORD_WEBHOOK, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            content: `New airdrop claim by ${connectedAccount} on network: ${SUPPORTED_CHAINS[currentChainId]}`
+          }),
+        });
+      } catch {}
 
-      showNotification("Claim successful!");
     } catch (err) {
-      statusMsg.textContent = `Claim failed: ${err.message || err}`;
-      showNotification("Claim failed, see console.", "error");
+      setStatus(`Claim failed: ${err.message || err}`, true);
       console.error(err);
     } finally {
       claimBtn.disabled = false;
     }
   }
 
-  // Initialize UI
-  function initUI() {
-    resetUI();
-  }
+  // Handle switch toggle
+  networkSwitch.addEventListener("change", () => {
+    if (!signer) return; // no wallet connected
+    // Re-init contract with selected network's contract
+    initContract();
+    setStatus(networkSwitch.checked ? "Mainnet selected" : "Testnet selected");
+  });
 
-  // Button event listeners
+  // Connect / Disconnect button click
   connectBtn.addEventListener("click", async () => {
     if (signer) {
       await disconnectWallet();
@@ -374,14 +443,15 @@
     }
   });
 
+  // Claim button click
   claimBtn.addEventListener("click", claimTokens);
 
-  // Autoconnect cached provider if any
-  if (web3Modal && web3Modal.cachedProvider) {
-    connectWallet();
+  // Auto-connect cached provider if available
+  if (web3Modal.cachedProvider) {
+    await connectWallet();
+  } else {
+    resetUI();
   }
-
-  initUI();
 })();
 </script>
 </body>
