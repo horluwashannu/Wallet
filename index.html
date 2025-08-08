@@ -1,458 +1,499 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" class=>
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Multi-Network Airdrop Claim with Switch</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NaijaSmart — Dashboard</title>
 
-<script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tailwind CDN (Play) -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
-<!-- Ethers.js -->
-<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+  <!-- Bootstrap CSS (v5) -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
 
-<!-- Web3Modal and Wallet Providers -->
-<script src="https://unpkg.com/web3modal@1.9.12/dist/index.js"></script>
-<script src="https://unpkg.com/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
-<script src="https://unpkg.com/@coinbase/wallet-sdk@3.8.0/dist/CoinbaseWalletSDK.min.js"></script>
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
 
-<style>
-  body {
-    margin: 0;
-    background: linear-gradient(-45deg, #6d28d9, #9333ea, #3b82f6, #2563eb);
-    background-size: 400% 400%;
-    animation: gradientMove 20s ease infinite;
-    font-family: 'Poppins', sans-serif;
-    color: #e0e7ff;
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 1rem;
-  }
-  @keyframes gradientMove {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-  #app {
-    background: rgba(0, 0, 30, 0.85);
-    backdrop-filter: blur(12px);
-    border-radius: 20px;
-    max-width: 520px;
-    width: 100%;
-    box-shadow: 0 0 30px rgba(110, 49, 250, 0.6);
-    padding: 2rem;
-    text-align: center;
-  }
-  h1 {
-    font-weight: 900;
-    font-size: 2.5rem;
-    margin-bottom: 0.5rem;
-    text-shadow: 0 2px 8px #9333ea99;
-  }
-  p {
-    font-size: 1.1rem;
-    margin-bottom: 1.2rem;
-    opacity: 0.9;
-  }
-  button {
-    font-size: 1.2rem;
-    padding: 1rem 1.5rem;
-    border-radius: 15px;
-    border: none;
-    cursor: pointer;
-    font-weight: 700;
-    box-shadow: 0 0 15px #9333eaaa;
-    background: linear-gradient(90deg, #7c3aed, #c084fc);
-    color: white;
-    user-select: none;
-    transition: all 0.3s ease;
-    margin-top: 1rem;
-  }
-  button:disabled {
-    background: #4c1d95aa;
-    cursor: not-allowed;
-    box-shadow: none;
-    color: #c4b5fd88;
-  }
-  #accountDisplay, #networkDisplay {
-    font-family: "Courier New", Courier, monospace;
-    color: #d8b4fecc;
-    font-weight: 600;
-    font-size: 1rem;
-    margin-top: 1rem;
-    user-select: text;
-  }
-  #statusMsg {
-    font-size: 1rem;
-    margin-top: 1rem;
-    min-height: 1.2rem;
-    color: #fbbf24cc;
-    font-weight: 700;
-    user-select: none;
-    text-shadow: 0 0 8px #fbbf2488;
-  }
-  #switchContainer {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 1.5rem;
-    gap: 1rem;
-    user-select: none;
-  }
-  .switch-label {
-    font-weight: 700;
-    font-size: 1rem;
-  }
-  /* Horizontal switch */
-  .switch {
-    position: relative;
-    display: inline-block;
-    width: 70px;
-    height: 32px;
-  }
-  .switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
-  .slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-color: #555;
-    transition: .4s;
-    border-radius: 32px;
-  }
-  .slider:before {
-    position: absolute;
-    content: "";
-    height: 26px;
-    width: 26px;
-    left: 3px;
-    bottom: 3px;
-    background-color: #eee;
-    transition: .4s;
-    border-radius: 50%;
-  }
-  input:checked + .slider {
-    background: linear-gradient(90deg, #7c3aed, #c084fc);
-  }
-  input:checked + .slider:before {
-    transform: translateX(38px);
-  }
-</style>
+  <style>
+    /* ---------- Custom CSS (polish & overrides) ---------- */
+    :root{
+      --accent-1: #00b77e; /* Emerald */
+      --accent-2: #0ea5a4; /* Teal */
+      --glass: rgba(255,255,255,0.08);
+      --card-radius: 16px;
+      --transition: 240ms cubic-bezier(.16,.84,.22,1);
+    }
+
+    html,body{height:100%}
+    body{
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: linear-gradient(180deg, #e6fffa 0%, #f0fdfa 100%);
+      color:#0f172a;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    /* Layout grid */
+    .app-layout{min-height:100vh;display:grid;grid-template-columns:260px 1fr;gap:24px;padding:22px;}
+    @media (max-width: 992px){ .app-layout{grid-template-columns:1fr; padding:12px;} .sidebar { position: relative; height: auto; } }
+
+    /* Sidebar */
+    .sidebar{
+      position:sticky; top:22px; align-self:start; height:calc(100vh - 44px);
+      background: linear-gradient(180deg, rgba(6,95,70,0.96), rgba(2,63,52,0.96));
+      color:#fff; padding:20px;border-radius:18px;box-shadow:0 10px 30px rgba(2,6,23,0.12);
+      display:flex; flex-direction:column; gap:18px;
+    }
+    .brand { display:flex; gap:12px; align-items:center; }
+    .brand .logo { width:48px; height:48px; border-radius:12px; display:grid;place-items:center; font-weight:700; background:linear-gradient(135deg,#34d399,#06b6d4); color:#fff; box-shadow: 0 8px 22px rgba(6,95,70,0.3); }
+    .brand h4{ margin:0; font-size:1.05rem; font-weight:700; }
+    .nav-item-compact{ display:flex; gap:12px; align-items:center; padding:10px; border-radius:12px; cursor:pointer; transition: transform var(--transition), background var(--transition); }
+    .nav-item-compact i{ width:36px; height:36px; display:grid; place-items:center; border-radius:9px; background:rgba(255,255,255,0.06); }
+    .nav-item-compact:hover{ transform: translateX(6px); background: rgba(255,255,255,0.04); }
+    .nav-item-compact.active{ background: linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03)); box-shadow: 0 6px 20px rgba(6,95,70,0.16); transform:none; }
+
+    .sidebar .section-title{ font-size:0.85rem; color:rgba(255,255,255,0.85); margin-top:8px; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.06em; }
+
+    .micro { font-size:0.82rem; color:rgba(255,255,255,0.85); }
+
+    /* Main content */
+    .main {
+      padding:20px; border-radius:18px; background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.6));
+      box-shadow: 0 10px 40px rgba(2,6,23,0.06); backdrop-filter: blur(6px);
+    }
+
+    .topbar { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .search { flex:1; display:flex; gap:10px; align-items:center; background:#fff; border-radius:12px; padding:8px 12px; box-shadow:0 6px 18px rgba(2,6,23,0.04); }
+    .search input{ border:none; outline:none; width:100%; font-size:14px; }
+
+    .profile-chip{ display:flex; gap:10px; align-items:center; padding:8px 12px; border-radius:999px; background:linear-gradient(90deg,#fff,#f7fbff); box-shadow: 0 8px 18px rgba(2,6,23,0.04); cursor:pointer; }
+
+    /* Cards & Widgets */
+    .card-lg{ border-radius:12px; padding:18px; box-shadow:0 8px 30px rgba(2,6,23,0.06); background:linear-gradient(180deg,#fff,#fbfdff); }
+    .welcome { display:flex; gap:18px; align-items:center; justify-content:space-between; }
+    .welcome-left h2{ margin:0; font-size:1.25rem; }
+    .welcome-left p{ margin:6px 0 0; color:#475569; font-size:0.95rem; }
+
+    .quick-actions { display:flex; gap:12px; margin-top:12px; flex-wrap:wrap; }
+    .act-btn { padding:10px 12px; border-radius:12px; display:inline-flex; gap:10px; align-items:center; background:linear-gradient(90deg,#ecfccb,#bbf7d0); color:#064e3b; font-weight:600; box-shadow:0 6px 18px rgba(6,95,70,0.06); cursor:pointer; transition: all var(--transition); }
+    .act-btn:hover{ transform: translateY(-6px); }
+
+    .grid-3 { display:grid; grid-template-columns: 1fr 360px; gap:18px; margin-top:18px; }
+    @media (max-width: 1100px){ .grid-3{ grid-template-columns:1fr; } }
+
+    .modules-list{ display:flex; flex-direction:column; gap:12px; margin-top:12px; }
+    .module-card { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:12px; border-radius:12px; background:linear-gradient(90deg,#fff,#fbfdff); box-shadow:0 6px 18px rgba(2,6,23,0.04); transition: transform var(--transition), box-shadow var(--transition); }
+    .module-card:hover{ transform: translateY(-6px); box-shadow:0 18px 50px rgba(2,6,23,0.08); }
+    .module-left { display:flex; gap:12px; align-items:center; }
+    .module-icon { width:52px; height:52px; border-radius:12px; display:grid;place-items:center; color:white; font-size:18px; box-shadow:0 8px 20px rgba(2,6,23,0.06); }
+    .badge { padding:6px 10px; border-radius:999px; font-weight:700; font-size:12px; }
+
+    /* Recent list */
+    .recent-list{ display:flex; flex-direction:column; gap:8px; margin-top:8px; }
+    .recent-item{ display:flex; justify-content:space-between; gap:12px; padding:10px; border-radius:10px; background:linear-gradient(90deg,#fbfbff,#fff); box-shadow:0 6px 18px rgba(2,6,23,0.03); }
+
+    /* Footer small */
+    .mini-foot{ margin-top:18px; font-size:13px; color:#475569; }
+
+    /* Hover glow for sidebar active */
+    .glow {
+      position:relative;
+    }
+    .glow::after{
+      content:""; position:absolute; inset:0; border-radius:12px; pointer-events:none; opacity:0; transform:scale(.96); transition: all 300ms ease;
+      box-shadow: 0 12px 30px rgba(6,95,70,0.14);
+    }
+    .nav-item-compact:hover .glow::after{ opacity:1; transform:none; }
+
+    /* Dark theme support (tailwind toggles will add class 'dark' on body) */
+    .dark .sidebar{ background: linear-gradient(180deg,#052e2a,#022926); color:#d1fae5; }
+    .dark .main{ background: linear-gradient(180deg, rgba(6,8,12,0.6), rgba(6,8,12,0.5)); color:#e6f9f0; }
+  </style>
 </head>
-<body>
-  <main id="app" role="main" aria-label="Airdrop Claim Application">
-    <h1>Multi-Network Airdrop Claim</h1>
-    <p>Connect your wallet and toggle Mainnet / Testnet below to select which contract to interact with. The wallet network is detected automatically and must match supported networks.</p>
+<body class="antialiased">
 
-    <div id="switchContainer" aria-label="Toggle Mainnet or Testnet for contract">
-      <span class="switch-label">Testnet</span>
-      <label class="switch" aria-checked="false" role="switch" tabindex="0">
-        <input type="checkbox" id="networkSwitch" aria-describedby="switchDesc" />
-        <span class="slider"></span>
-      </label>
-      <span class="switch-label">Mainnet</span>
-    </div>
-    <div id="switchDesc" class="sr-only">Toggle to switch contract between Testnet (off) and Mainnet (on)</div>
+  <div class="app-layout">
 
-    <button id="connectBtn" aria-live="polite" aria-disabled="false">Connect Wallet</button>
-    <button id="claimBtn" disabled aria-live="polite" aria-disabled="true" title="Connect your wallet and use supported network to claim tokens.">🔒 Claim Tokens</button>
+    <!-- SIDEBAR -->
+    <aside class="sidebar" role="navigation" aria-label="Main sidebar">
+      <div class="brand">
+        <div class="logo">NS</div>
+        <div>
+          <h4>NaijaSmart</h4>
+          <div class="micro">Your AI assistant for everything</div>
+        </div>
+      </div>
 
-    <div id="networkDisplay" aria-live="polite" aria-atomic="true"></div>
-    <div id="accountDisplay" aria-live="polite" aria-atomic="true"></div>
-    <div id="statusMsg" aria-live="polite" aria-atomic="true"></div>
-  </main>
+      <div>
+        <div class="section-title">Modules</div>
+        <div class="modules-list" id="moduleList">
+          <div class="nav-item-compact active" data-module="talk2know" onclick="activateModule(event)">
+            <div class="module-left">
+              <div class="module-icon" style="background:linear-gradient(135deg,#34d399,#06b6d4)"><i class="fa-solid fa-comments"></i></div>
+              <div>
+                <div style="font-weight:700">Talk2Know</div>
+                <div class="micro">Ask questions, get smart answers</div>
+              </div>
+            </div>
+            <div class="badge" style="background:rgba(255,255,255,0.12); color:#fff">Live</div>
+          </div>
 
-<script>
-(async () => {
-  // --- CONFIGURATION - replace with your actual data ---
+          <div class="nav-item-compact" data-module="klassense" onclick="activateModule(event)">
+            <div class="module-left">
+              <div class="module-icon" style="background:linear-gradient(135deg,#7c3aed,#a78bfa)"><i class="fa-solid fa-graduation-cap"></i></div>
+              <div>
+                <div style="font-weight:700">KlasSense</div>
+                <div class="micro">Flashcards & quizzes</div>
+              </div>
+            </div>
+            <div class="badge" style="background:rgba(255,255,255,0.1); color:#fff">Study</div>
+          </div>
 
-  // Mainnet contract
-  const MAINNET = {
-    CONTRACT_ADDRESS: "YOUR_MAINNET_CONTRACT_ADDRESS",
-    CONTRACT_ABI: [ /* Paste your MAINNET contract ABI JSON here */ ],
-  };
+          <div class="nav-item-compact" data-module="nairacoach" onclick="activateModule(event)">
+            <div class="module-left">
+              <div class="module-icon" style="background:linear-gradient(135deg,#ffd166,#ff7f50)"><i class="fa-solid fa-wallet"></i></div>
+              <div>
+                <div style="font-weight:700">NairaCoach</div>
+                <div class="micro">Budget & loan tips</div>
+              </div>
+            </div>
+            <div class="badge" style="background:rgba(255,255,255,0.1); color:#04201a">N</div>
+          </div>
 
-  // Testnet contract
-  const TESTNET = {
-    CONTRACT_ADDRESS: "YOUR_TESTNET_CONTRACT_ADDRESS",
-    CONTRACT_ABI: [ /* Paste your TESTNET contract ABI JSON here */ ],
-  };
+          <div class="nav-item-compact" data-module="aitown" onclick="activateModule(event)">
+            <div class="module-left">
+              <div class="module-icon" style="background:linear-gradient(135deg,#60a5fa,#38bdf8)"><i class="fa-solid fa-city"></i></div>
+              <div>
+                <div style="font-weight:700">AI Town Helper</div>
+                <div class="micro">Find LGA services & maps</div>
+              </div>
+            </div>
+            <div class="badge" style="background:rgba(255,255,255,0.1); color:#fff">Maps</div>
+          </div>
+        </div>
+      </div>
 
-  // Supported chains for mainnet and testnet (chainId: name)
-  const SUPPORTED_CHAINS = {
-    1: "Ethereum Mainnet",
-    5: "Ethereum Goerli Testnet",
-    56: "BSC Mainnet",
-    97: "BSC Testnet",
-    137: "Polygon Mainnet",
-    80001: "Polygon Mumbai Testnet",
-    43114: "Avalanche Mainnet",
-    43113: "Avalanche Fuji Testnet",
-    42161: "Arbitrum One",
-    421613: "Arbitrum Goerli Testnet",
-    10: "Optimism Mainnet",
-    420: "Optimism Goerli Testnet"
-  };
+      <div>
+        <div class="section-title">Quick Actions</div>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <button class="act-btn" onclick="openModal('voiceModal')"><i class="fa-solid fa-microphone"></i> Voice Input</button>
+          <button class="act-btn" onclick="openModal('whatsappModal')"><i class="fa-brands fa-whatsapp"></i> WhatsApp Setup</button>
+          <button class="act-btn" onclick="openModal('deployModal')"><i class="fa-solid fa-cloud-arrow-up"></i> Deploy to Vercel</button>
+        </div>
+      </div>
 
-  // Telegram & Discord config - replace with yours
-  const NOTIFY = {
-    TELEGRAM_WEBHOOK: "YOUR_TELEGRAM_BOT_API_URL",
-    TELEGRAM_CHAT_ID: "YOUR_TELEGRAM_CHAT_ID",
-    DISCORD_WEBHOOK: "YOUR_DISCORD_WEBHOOK_URL"
-  };
+      <div style="margin-top:auto">
+        <div class="section-title">Account</div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <img src="https://i.pravatar.cc/48?img=14" alt="avatar" style="width:44px;height:44px;border-radius:10px;object-fit:cover" />
+          <div>
+            <div style="font-weight:700">Akintunde O.</div>
+            <div class="micro">Member since 2024</div>
+          </div>
+        </div>
+        <div class="mini-foot">Version <strong>naijasmart_hifi_aug23</strong></div>
+      </div>
+    </aside>
 
-  // Web3Modal provider options
-  const providerOptions = {
-    walletconnect: {
-      package: window.WalletConnectProvider.default,
-      options: {
-        rpc: {
-          1: "https://mainnet.infura.io/v3/YOUR_INFURA_ID",
-          5: "https://goerli.infura.io/v3/YOUR_INFURA_ID",
-          56: "https://bsc-dataseed.binance.org/",
-          97: "https://data-seed-prebsc-1-s1.binance.org:8545/",
-          137: "https://polygon-rpc.com/",
-          80001: "https://rpc-mumbai.maticvigil.com",
-          43114: "https://api.avax.network/ext/bc/C/rpc",
-          43113: "https://api.avax-test.network/ext/bc/C/rpc",
-          42161: "https://arb1.arbitrum.io/rpc",
-          421613: "https://goerli-rollup.arbitrum.io/rpc",
-          10: "https://mainnet.optimism.io",
-          420: "https://goerli.optimism.io"
-        }
-      }
-    },
-    coinbasewallet: {
-      package: CoinbaseWalletSDK,
-      options: {
-        appName: "Multi-Network Airdrop Claim DApp",
-        infuraId: "YOUR_INFURA_ID",
-        darkMode: false
-      }
+    <!-- MAIN -->
+    <main class="main" role="main">
+
+      <!-- TOPBAR -->
+      <div class="topbar">
+        <div style="display:flex; gap:12px; align-items:center; flex:1">
+          <div class="search" role="search" aria-label="Search services">
+            <i class="fa fa-search text-muted" style="color:#9aa4af"></i>
+            <input id="globalSearch" placeholder="Search modules, services or ask a question..." />
+            <button class="btn btn-sm btn-outline-secondary" onclick="speak('Hello, how can I help you?')">Quick Ask</button>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;align-items:center">
+          <div class="form-check form-switch me-2">
+            <input class="form-check-input" type="checkbox" id="themeSwitch" onchange="toggleTheme(this.checked)" />
+            <label class="form-check-label" for="themeSwitch">Dark</label>
+          </div>
+          <div class="profile-chip" tabindex="0" role="button" onclick="openModal('profileModal')">
+            <img src="https://i.pravatar.cc/40?img=32" alt="avatar" style="width:36px;height:36px;border-radius:8px;object-fit:cover" />
+            <div style="text-align:left">
+              <div style="font-weight:700">Akintunde</div>
+              <div style="font-size:12px;color:#64748b">Admin</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WELCOME + STATS -->
+      <div class="card-lg welcome" style="margin-top:12px;">
+        <div class="welcome-left">
+          <h2>Hi Akintunde — welcome back 👋</h2>
+          <p>NaijaSmart helps you ask questions, study smarter, manage money in Naira, and find local government services — all from one interface. Try voice input or open any module from the left.</p>
+
+          <div class="quick-actions" style="margin-top:12px;">
+            <div class="act-btn" onclick="activateByName('talk2know')"><i class="fa-solid fa-comments"></i> Ask (Talk2Know)</div>
+            <div class="act-btn" onclick="activateByName('klassense')"><i class="fa-solid fa-graduation-cap"></i> Study (KlasSense)</div>
+            <div class="act-btn" onclick="activateByName('nairacoach')"><i class="fa-solid fa-wallet"></i> Budget (NairaCoach)</div>
+            <div class="act-btn" onclick="activateByName('aitown')"><i class="fa-solid fa-map-location-dot"></i> Map (AI Town)</div>
+          </div>
+        </div>
+
+        <div style="width:340px;">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="background: linear-gradient(90deg,#fff,#f8fafc); padding:12px; border-radius:12px; box-shadow:0 8px 20px rgba(2,6,23,0.05);">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <div style="font-size:13px;color:#475569">Balance</div>
+                <div style="font-size:13px;color:#475569">Savings • •••• 0489</div>
+              </div>
+              <div style="font-weight:800;font-size:20px;margin-top:6px">₦ 5,023,300.55</div>
+              <div style="display:flex;gap:8px;margin-top:10px">
+                <button class="btn btn-sm btn-success" onclick="openModal('fundModal')">Quick Transfer</button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="openModal('cardsModal')">Manage Cards</button>
+              </div>
+            </div>
+
+            <div style="background:linear-gradient(90deg,#fff,#fbfdff);padding:12px;border-radius:12px;box-shadow:0 6px 20px rgba(2,6,23,0.04)">
+              <div style="display:flex;justify-content:space-between;">
+                <div><div style="font-size:13px;color:#64748b">Recent</div><div style="font-weight:700">Activity</div></div>
+                <div class="small text-muted">Last 7 days</div>
+              </div>
+              <div class="recent-list" aria-live="polite" style="margin-top:10px">
+                <div class="recent-item"><div>Airtime purchase</div><div class="text-success">₦2,500</div></div>
+                <div class="recent-item"><div>Transport</div><div class="text-danger">₦1,200</div></div>
+                <div class="recent-item"><div>Salary</div><div class="text-success">₦250,000</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GRID: MODULES + DETAILS -->
+      <div class="grid-3">
+        <!-- LEFT: Modules preview -->
+        <div>
+          <h5 style="margin:6px 0 12px">Module Previews</h5>
+
+          <div class="module-card" id="preview-talk2know">
+            <div class="module-left">
+              <div class="module-icon" style="background:linear-gradient(135deg,#34d399,#06b6d4)">
+                <i class="fa-solid fa-comments"></i>
+              </div>
+              <div>
+                <div style="font-weight:700">Talk2Know</div>
+                <div class="micro">Conversational assistant — text & voice.</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-sm btn-outline-primary" onclick="openModuleWindow('talk2know')">Open</button>
+              <button class="btn btn-sm btn-primary" onclick="openModuleDetails('talk2know')">Details</button>
+            </div>
+          </div>
+
+          <div class="module-card" id="preview-klassense" style="margin-top:12px">
+            <div class="module-left">
+              <div class="module-icon" style="background:linear-gradient(135deg,#7c3aed,#a78bfa)"><i class="fa-solid fa-graduation-cap"></i></div>
+              <div>
+                <div style="font-weight:700">KlasSense</div>
+                <div class="micro">Flashcards, quizzes, and SRS scheduling.</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-sm btn-outline-primary" onclick="openModuleWindow('klassense')">Open</button>
+              <button class="btn btn-sm btn-primary" onclick="openModuleDetails('klassense')">Details</button>
+            </div>
+          </div>
+
+          <div class="module-card" id="preview-nairacoach" style="margin-top:12px">
+            <div class="module-left">
+              <div class="module-icon" style="background:linear-gradient(135deg,#ffd166,#ff7f50)"><i class="fa-solid fa-wallet"></i></div>
+              <div>
+                <div style="font-weight:700">NairaCoach</div>
+                <div class="micro">Budget planner & loan coaching in Naira.</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-sm btn-outline-primary" onclick="openModuleWindow('nairacoach')">Open</button>
+              <button class="btn btn-sm btn-primary" onclick="openModuleDetails('nairacoach')">Details</button>
+            </div>
+          </div>
+
+          <div class="module-card" id="preview-aitown" style="margin-top:12px">
+            <div class="module-left">
+              <div class="module-icon" style="background:linear-gradient(135deg,#60a5fa,#38bdf8)"><i class="fa-solid fa-city"></i></div>
+              <div>
+                <div style="font-weight:700">AI Town Helper</div>
+                <div class="micro">Find LGA services, maps & contact forms.</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-sm btn-outline-primary" onclick="openModuleWindow('aitown')">Open</button>
+              <button class="btn btn-sm btn-primary" onclick="openModuleDetails('aitown')">Details</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: About / Contact / Extra -->
+        <aside style="display:flex;flex-direction:column;gap:12px">
+          <div class="card-lg">
+            <h5 style="margin:0 0 8px">About naijasmart_hifi_aug23</h5>
+            <p class="micro" style="margin:0">A hackathon-ready MVP combining four modules: Talk2Know (Q&A + voice), KlasSense (learning), NairaCoach (finance), and AI Town Helper (local services). Deployed as a lightweight web app with optional WhatsApp integration using Twilio or Green API.</p>
+            <div style="display:flex;gap:8px;margin-top:12px">
+              <button class="btn btn-sm btn-success" onclick="openModal('deployModal')"><i class="fa-solid fa-rocket"></i> Get Deploy Guide</button>
+              <button class="btn btn-sm btn-outline-secondary" onclick="openModal('docsModal')"><i class="fa-solid fa-file-lines"></i> Docs</button>
+            </div>
+          </div>
+
+          <div class="card-lg">
+            <h6 style="margin:0 0 8px">Contact & Support</h6>
+            <p class="micro" style="margin:0 0 8px">Need help during the hackathon? Reach out through WhatsApp or open a support ticket — we respond fast.</p>
+            <div style="display:flex;gap:8px;margin-top:12px">
+              <button class="btn btn-sm btn-success" onclick="openModal('whatsappModal')"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button>
+              <button class="btn btn-sm btn-outline-primary" onclick="openModal('supportModal')"><i class="fa-solid fa-life-ring"></i> Support Ticket</button>
+            </div>
+          </div>
+
+          <div class="card-lg">
+            <h6 style="margin:0 0 8px">Recent AI Tips</h6>
+            <ul style="margin:0;padding-left:18px">
+              <li class="micro">Try asking: "How do I register for my LGA ID?"</li>
+              <li class="micro">Use voice input to send quick queries while on the move.</li>
+              <li class="micro">In NairaCoach, set weekly budgets and get SMS reminders.</li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- Bootstrap JS / Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    /* ---------- Small JS for interactions ---------- */
+
+    // Activate sidebar module
+    function activateModule(e){
+      const el = e.currentTarget || e.target.closest('.nav-item-compact');
+      if(!el) return;
+      document.querySelectorAll('.nav-item-compact').forEach(n=>n.classList.remove('active'));
+      el.classList.add('active');
+
+      const moduleName = el.getAttribute('data-module');
+      // Show/hide preview cards
+      document.querySelectorAll('[id^="preview-"]').forEach(p=> p.style.display = 'none');
+      const target = document.getElementById('preview-' + moduleName);
+      if(target) target.style.display = 'flex';
+      // small scroll to top of main when mobile
+      window.scrollTo({top:0,behavior:'smooth'});
     }
-  };
 
-  // DOM Elements
-  const connectBtn = document.getElementById("connectBtn");
-  const claimBtn = document.getElementById("claimBtn");
-  const networkDisplay = document.getElementById("networkDisplay");
-  const accountDisplay = document.getElementById("accountDisplay");
-  const statusMsg = document.getElementById("statusMsg");
-  const networkSwitch = document.getElementById("networkSwitch");
-
-  let web3Modal = null;
-  let provider = null;
-  let signer = null;
-  let contract = null;
-  let currentChainId = null;
-  let connectedAccount = null;
-
-  // Initialize Web3Modal
-  web3Modal = new window.Web3Modal.default({
-    cacheProvider: true,
-    providerOptions
-  });
-
-  // Helper: Show status message
-  function setStatus(msg, isError = false) {
-    statusMsg.textContent = msg;
-    statusMsg.style.color = isError ? "#f87171" : "#fbbf24";
-  }
-
-  // Helper: Show network and account
-  function updateUI() {
-    if (connectedAccount) {
-      accountDisplay.textContent = `Connected: ${connectedAccount}`;
-    } else {
-      accountDisplay.textContent = "";
+    // Activate by name (used by quick actions)
+    function activateByName(name){
+      const el = document.querySelector('.nav-item-compact[data-module="'+name+'"]');
+      if(el) el.click();
     }
-    if (currentChainId && SUPPORTED_CHAINS[currentChainId]) {
-      networkDisplay.textContent = `Network: ${SUPPORTED_CHAINS[currentChainId]}`;
-    } else if (currentChainId) {
-      networkDisplay.textContent = `Network: Unsupported (Chain ID ${currentChainId})`;
-    } else {
-      networkDisplay.textContent = "";
+
+    // Open module details modal (bootstrap modal)
+    function openModuleDetails(name){
+      const content = {
+        talk2know: {title:'Talk2Know', text:'Text + voice conversational assistant. Uses lightweight endpoints to call LLMs; includes language detection and quick replies.'},
+        klassense: {title:'KlasSense', text:'Flashcards, quizzes, spaced repetition scheduler and study analytics.'},
+        nairacoach: {title:'NairaCoach', text:'Budget planner, expenses, and loan coaching. Simple Naira charts and alerts.'},
+        aitown: {title:'AI Town Helper', text:'Find local government services, forms, maps and contact info for LGAs.'}
+      };
+      const data = content[name] || {title:'Module', text:'Module details coming soon.'};
+      showModalHtml(data.title, '<p>'+data.text+'</p><p class="mt-2 small text-muted">Tip: Click <strong>Open</strong> to launch the module interface.</p>');
     }
-  }
 
-  // Reset UI
-  function resetUI() {
-    connectedAccount = null;
-    currentChainId = null;
-    contract = null;
-    provider = null;
-    signer = null;
-    updateUI();
-    setStatus("Connect your wallet");
-    claimBtn.disabled = true;
-    claimBtn.title = "Connect your wallet and use supported network to claim tokens.";
-    connectBtn.textContent = "Connect Wallet";
-  }
-
-  // Get config based on switch state
-  function getConfig() {
-    return networkSwitch.checked ? MAINNET : TESTNET;
-  }
-
-  // Initialize contract instance
-  function initContract() {
-    if (!signer) {
-      setStatus("Signer not available", true);
-      return false;
+    // Open a simple modal with HTML content
+    function showModalHtml(title, html){
+      const modalWrapper = document.createElement('div');
+      modalWrapper.innerHTML = `
+        <div class="modal fade show" style="display:block; background:rgba(2,6,23,0.4);" tabindex="-1" role="dialog">
+          <div class="modal-dialog modal-md modal-dialog-centered" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">${title}</h5>
+                <button type="button" class="btn-close" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">${html}</div>
+              <div class="modal-footer"><button class="btn btn-sm btn-secondary">Close</button></div>
+            </div>
+          </div>
+        </div>`;
+      document.body.appendChild(modalWrapper);
+      modalWrapper.querySelectorAll('.btn-close, .modal-footer button').forEach(b=> b.addEventListener('click', ()=>{
+        modalWrapper.remove();
+      }));
     }
-    const cfg = getConfig();
-    contract = new ethers.Contract(cfg.CONTRACT_ADDRESS, cfg.CONTRACT_ABI, signer);
-    return true;
-  }
 
-  // Check if chain is supported
-  function isSupportedChain(chainId) {
-    return Object.hasOwnProperty.call(SUPPORTED_CHAINS, chainId);
-  }
-
-  // Connect wallet
-  async function connectWallet() {
-    try {
-      provider = await web3Modal.connect();
-      const ethersProvider = new ethers.providers.Web3Provider(provider);
-      signer = ethersProvider.getSigner();
-
-      // Detect initial network & account
-      const network = await ethersProvider.getNetwork();
-      currentChainId = network.chainId;
-      connectedAccount = await signer.getAddress();
-
-      // Setup contract instance
-      if (!initContract()) return;
-
-      // Check chain support
-      if (!isSupportedChain(currentChainId)) {
-        setStatus(`Unsupported network: Chain ID ${currentChainId}. Please switch your wallet network.`, true);
-        claimBtn.disabled = true;
-        claimBtn.title = "Switch to supported network";
+    // Open prebuilt modals (profile, support, whatsapp etc)
+    function openModal(id){
+      if(id === 'profileModal'){
+        showModalHtml('Profile','<p><strong>Akintunde</strong><br/>Role: Admin<br/>Email: you@example.com</p>');
+      } else if(id === 'supportModal'){
+        showModalHtml('Support','<form onsubmit="alert(\\'Ticket submitted\\'); return false;"><div class="mb-2"><label class="form-label">Subject</label><input class="form-control" required></div><div class="mb-2"><label class="form-label">Message</label><textarea class="form-control" rows="4" required></textarea></div><button class="btn btn-primary">Send</button></form>');
+      } else if(id === 'whatsappModal'){
+        showModalHtml('WhatsApp Integration','<p>We will help you connect Twilio or Green API to enable WhatsApp flows. Provide your API keys or use the hosted webhook endpoint.</p>');
+      } else if(id === 'deployModal'){
+        showModalHtml('Deploying to Vercel','<p>Ready-to-deploy instructions and GitHub Actions file included in the repo. Use Vercel for frontend and lightweight serverless functions for AI endpoints.</p>');
+      } else if(id === 'voiceModal'){
+        showModalHtml('Voice Input','<p>Web Speech API is used for browser voice capture. You can enable voice by granting microphone permissions.</p>');
+      } else if(id === 'docsModal'){
+        showModalHtml('Documentation','<p>Project README, API mocks and Figma prototype links will be attached to the submission package.</p>');
+      } else if(id === 'cardsModal'){
+        showModalHtml('Manage Cards','<p>Card management UI stub. You can integrate with Stripe or local payment gateways later.</p>');
+      } else if(id === 'fundModal'){
+        showModalHtml('Quick Transfer','<form onsubmit="alert(\\'Transfer submitted (demo)\\'); return false;"><input class="form-control mb-2" placeholder="Recipient phone or account" required><input class="form-control mb-2" placeholder="Amount (₦)" required type="number"><button class="btn btn-success">Send</button></form>');
       } else {
-        setStatus("Wallet connected and network supported.");
-        claimBtn.disabled = false;
-        claimBtn.title = "Click to claim your tokens";
+        showModalHtml('Info','<p>Coming soon</p>');
       }
+    }
 
-      updateUI();
-      connectBtn.textContent = "Disconnect Wallet";
+    // Placeholder for opening module real UI (could open new page)
+    function openModuleWindow(name){
+      alert('Open: ' + name + ' (replace with real route: ' + name + '.php or /' + name + ')');
+    }
 
-      // Listen to accounts changed
-      provider.on("accountsChanged", (accounts) => {
-        if (accounts.length === 0) {
-          disconnectWallet();
-        } else {
-          connectedAccount = accounts[0];
-          updateUI();
-        }
+    // Small TTS helper for quick demo voice
+    function speak(text){
+      if(!('speechSynthesis' in window)) return alert('Speech not supported');
+      const ut = new SpeechSynthesisUtterance(String(text));
+      ut.lang = 'en-US';
+      speechSynthesis.speak(ut);
+    }
+
+    // Theme toggle
+    function toggleTheme(dark){
+      if(dark){
+        document.body.classList.add('dark');
+      } else {
+        document.body.classList.remove('dark');
+      }
+    }
+
+    // Example: handle search Enter to prompt quick modal
+    document.getElementById('globalSearch').addEventListener('keydown', function(e){
+      if(e.key === 'Enter'){
+        const q = this.value.trim();
+        if(!q) return;
+        // For demo, just show the modal with answer stub
+        showModalHtml('Search: ' + q, '<p><strong>Answer (demo):</strong> This is a stub response for "'+ q +'". Integrate LLM endpoints for real answers.</p>');
+      }
+    });
+
+    // Initialize: show talk2know preview by default
+    document.addEventListener('DOMContentLoaded', function(){
+      document.getElementById('preview-talk2know').style.display = 'flex';
+      // hide others
+      ['klassense','nairacoach','aitown'].forEach(n => {
+        const el = document.getElementById('preview-'+n);
+        if(el) el.style.display = 'none';
       });
+    });
 
-      // Listen to network changed
-      provider.on("chainChanged", (chainIdHex) => {
-        currentChainId = parseInt(chainIdHex, 16);
-        updateUI();
-        if (!isSupportedChain(currentChainId)) {
-          setStatus(`Unsupported network: Chain ID ${currentChainId}. Please switch your wallet network.`, true);
-          claimBtn.disabled = true;
-          claimBtn.title = "Switch to supported network";
-        } else {
-          setStatus("Network changed to supported network.");
-          claimBtn.disabled = false;
-          claimBtn.title = "Click to claim your tokens";
-        }
-        initContract();
-      });
-
-    } catch (err) {
-      setStatus(`Could not connect wallet: ${err.message || err}`, true);
-      resetUI();
-    }
-  }
-
-  // Disconnect wallet
-  async function disconnectWallet() {
-    if (web3Modal) {
-      await web3Modal.clearCachedProvider();
-    }
-    resetUI();
-  }
-
-  // Claim tokens
-  async function claimTokens() {
-    if (!contract) {
-      setStatus("Contract not initialized.", true);
-      return;
-    }
-    claimBtn.disabled = true;
-    setStatus("Sending claim transaction...");
-
-    try {
-      // Replace this with your real contract method & params
-      const tx = await contract.claimTokens();
-      setStatus("Transaction sent. Waiting for confirmation...");
-      await tx.wait();
-
-      setStatus("Claim successful!");
-
-      // Notify Telegram
-      try {
-        const address = connectedAccount;
-        const networkName = SUPPORTED_CHAINS[currentChainId] || `Chain ID ${currentChainId}`;
-        fetch(`${NOTIFY.TELEGRAM_WEBHOOK}?chat_id=${NOTIFY.TELEGRAM_CHAT_ID}&text=${encodeURIComponent(`New airdrop claim by ${address} on network: ${networkName}`)}`);
-      } catch {}
-
-      // Notify Discord
-      try {
-        fetch(NOTIFY.DISCORD_WEBHOOK, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            content: `New airdrop claim by ${connectedAccount} on network: ${SUPPORTED_CHAINS[currentChainId]}`
-          }),
-        });
-      } catch {}
-
-    } catch (err) {
-      setStatus(`Claim failed: ${err.message || err}`, true);
-      console.error(err);
-    } finally {
-      claimBtn.disabled = false;
-    }
-  }
-
-  // Handle switch toggle
-  networkSwitch.addEventListener("change", () => {
-    if (!signer) return; // no wallet connected
-    // Re-init contract with selected network's contract
-    initContract();
-    setStatus(networkSwitch.checked ? "Mainnet selected" : "Testnet selected");
-  });
-
-  // Connect / Disconnect button click
-  connectBtn.addEventListener("click", async () => {
-    if (signer) {
-      await disconnectWallet();
-    } else {
-      await connectWallet();
-    }
-  });
-
-  // Claim button click
-  claimBtn.addEventListener("click", claimTokens);
-
-  // Auto-connect cached provider if available
-  if (web3Modal.cachedProvider) {
-    await connectWallet();
-  } else {
-    resetUI();
-  }
-})();
-</script>
+  </script>
+  
 </body>
 </html>
