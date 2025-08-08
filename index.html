@@ -1,553 +1,388 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Multi-Network Airdrop Claim</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Multi-Network Airdrop Claim DApp</title>
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
-  <script src="https://unpkg.com/web3modal@1.9.12/dist/index.js"></script>
-  <script src="https://unpkg.com/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
-  <script src="https://unpkg.com/@coinbase/wallet-sdk@3.8.0/dist/CoinbaseWalletSDK.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
 
-  <style>
-    /* Styles omitted for brevity - same as previous example */
-    body {
-      margin: 0; background: linear-gradient(-45deg, #6d28d9, #9333ea, #3b82f6, #2563eb);
-      background-size: 400% 400%; animation: gradientMove 20s ease infinite;
-      font-family: 'Poppins', sans-serif; color: #e0e7ff;
-      min-height: 100vh; display: flex; justify-content: center; align-items: center;
-      padding: 1rem;
-    }
-    @keyframes gradientMove {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-    #app {
-      background: rgba(0,0,30,0.8); backdrop-filter: blur(12px);
-      border-radius: 20px; max-width: 900px; width: 100%;
-      box-shadow: 0 0 30px rgba(110,49,250,0.6);
-      display: flex; flex-wrap: wrap; overflow: hidden;
-    }
-    #infoPanel {
-      flex: 1 1 380px; padding: 3rem 2.5rem;
-      background: linear-gradient(135deg, rgba(81,45,168,0.85), rgba(44,140,160,0.85));
-      color: #d8d8ff; display: flex; flex-direction: column; justify-content: center;
-    }
-    #infoPanel img { width:70px; height:70px; margin-bottom:1rem; filter: drop-shadow(0 0 6px #fff);}
-    #infoPanel h1 { font-weight:900; font-size:2.75rem; line-height:1.1; margin-bottom:0.3rem; text-shadow:0 2px 8px #9333ea99;}
-    #infoPanel h2 { color:#c084fc; font-weight:600; font-size:1.3rem; margin-bottom:1.5rem; text-shadow:0 1px 5px #9333eaaa;}
-    #infoPanel p { font-size:1.05rem; line-height:1.6; margin-bottom:1.8rem; opacity:0.9;}
-    #infoPanel ul { list-style: disc inside; color:#a5b4fc; font-size:0.95rem; line-height:1.4; padding-left:1rem; margin-bottom:0;}
-    #claimPanel {
-      flex: 1 1 400px; background: rgba(20,17,34,0.8);
-      padding: 3rem 2.5rem; display: flex; flex-direction: column; justify-content: center;
-      border-left: 3px solid #9333ea; color: #e0e7ff;
-    }
-    #claimPanel h3 {
-      font-size: 2rem; font-weight: 900; margin-bottom: 1.5rem; text-align:center;
-      text-shadow: 0 0 10px #d8b4feaa;
-    }
-    label {
-      font-weight: 600; font-size: 1.05rem; margin-bottom: 0.3rem; display: block;
-      color: #c084fc; user-select: none;
-    }
-    select, button {
-      width: 100%; font-size: 1.1rem; border-radius: 15px; border: none;
-      padding: 0.9rem 1.2rem; margin-bottom: 1.5rem; cursor: pointer;
-      transition: all 0.25s ease; box-shadow: 0 0 15px rgba(147, 51, 234, 0.7);
-      font-weight: 700; letter-spacing: 0.03em; user-select: none;
-    }
-    select {
-      background: #2a1644; color: #d8b4fe; box-shadow: inset 0 0 10px #6b21a8;
-    }
-    select:hover, select:focus {
-      outline: none; box-shadow: inset 0 0 15px #a78bfa;
-    }
-    button:disabled {
-      background: #4c1d95aa !important; cursor: not-allowed; box-shadow: none; color: #c4b5fd88;
-    }
-    #connectBtn {
-      background: linear-gradient(90deg, #7c3aed, #c084fc);
-      color: white; box-shadow: 0 0 18px #9333ea;
-    }
-    #connectBtn:hover:not(:disabled) {
-      background: linear-gradient(90deg, #c084fc, #7c3aed);
-      box-shadow: 0 0 25px #c084fc;
-    }
-    #claimBtn {
-      background: linear-gradient(90deg, #ec4899, #fbbf24);
-      color: white; box-shadow: 0 0 20px #f97316;
-    }
-    #claimBtn:hover:not(:disabled) {
-      background: linear-gradient(90deg, #fbbf24, #ec4899);
-      box-shadow: 0 0 30px #fb923c;
-    }
-    .toggle-switch {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      user-select: none;
-      margin-bottom: 1.5rem;
-      justify-content: center;
-    }
-    .toggle-switch label {
-      font-weight: 600; color: #c084fc; font-size: 1.05rem;
-    }
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 60px;
-      height: 30px;
-    }
-    .switch input {
-      opacity: 0; width: 0; height: 0;
-    }
-    .slider {
-      position: absolute; cursor: pointer;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background-color: #7c3aed;
-      border-radius: 30px;
-      transition: background-color 0.3s ease;
-      box-shadow: 0 0 8px #9333ea99;
-    }
-    .slider:before {
-      position: absolute; content: "";
-      height: 24px; width: 24px;
-      left: 3px; top: 3px;
-      background-color: white;
-      border-radius: 50%;
-      transition: transform 0.3s ease;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    }
-    input:checked + .slider {
-      background-color: #c084fc;
-      box-shadow: 0 0 12px #c084fcaa;
-    }
-    input:checked + .slider:before {
-      transform: translateX(30px);
-    }
-    #accountDisplay {
-      font-family: "Courier New", Courier, monospace;
-      text-align: center;
-      color: #d8b4fecc;
-      user-select: text;
-      font-weight: 600;
-      font-size: 0.9rem;
-      margin-bottom: 0.5rem;
-      text-shadow: 0 0 8px #a78bfa66;
-      word-break: break-all;
-    }
-    #statusMsg {
-      font-size: 0.9rem;
-      text-align: center;
-      color: #a5b4fccc;
-      min-height: 1.4rem;
-      margin-bottom: 0.4rem;
-      font-weight: 600;
-      user-select: none;
-      text-shadow: 0 0 8px #7c3aed99;
-    }
-    #txState {
-      font-family: "Courier New", Courier, monospace;
-      font-size: 0.8rem;
-      text-align: center;
-      color: #fbbf24cc;
-      user-select: text;
-      word-break: break-all;
-      text-shadow: 0 0 8px #fbbf2488;
-    }
-    #fakeNotif {
-      position: fixed;
-      bottom: 2rem; right: 2rem;
-      background: rgba(147, 51, 234, 0.9);
-      color: white; font-weight: 700;
-      padding: 1rem 1.4rem;
-      border-radius: 12px;
-      font-size: 1rem;
-      box-shadow: 0 0 20px #c084fc;
-      animation: slideUpFade 3.5s ease forwards;
-      opacity: 0;
-      pointer-events: none;
-      user-select: none;
-      max-width: 320px;
-      z-index: 9999;
-    }
-    #fakeNotif.show {
-      opacity: 1;
-      pointer-events: auto;
-    }
-    @keyframes slideUpFade {
-      0% { transform: translateY(30px); opacity: 0; }
-      10%, 90% { transform: translateY(0); opacity: 1; }
-      100% { transform: translateY(-20px); opacity: 0; }
-    }
-    @media (max-width: 720px) {
-      #app {
-        flex-direction: column;
-        border-radius: 15px;
-      }
-      #infoPanel, #claimPanel {
-        flex: unset;
-        width: 100%;
-        padding: 2rem 2rem;
-        border-left: none !important;
-      }
-      #infoPanel {
-        border-radius: 15px 15px 0 0;
-      }
-      #claimPanel {
-        border-radius: 0 0 15px 15px;
-      }
-    }
-  </style>
+<!-- Ethers.js -->
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+
+<!-- Web3Modal and Wallet Providers -->
+<script src="https://unpkg.com/web3modal@1.9.12/dist/index.js"></script>
+<script src="https://unpkg.com/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
+<script src="https://unpkg.com/@coinbase/wallet-sdk@3.8.0/dist/CoinbaseWalletSDK.min.js"></script>
+
+<style>
+  body {
+    margin: 0;
+    background: linear-gradient(-45deg, #6d28d9, #9333ea, #3b82f6, #2563eb);
+    background-size: 400% 400%;
+    animation: gradientMove 20s ease infinite;
+    font-family: 'Poppins', sans-serif;
+    color: #e0e7ff;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+  }
+  @keyframes gradientMove {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  #app {
+    background: rgba(0, 0, 30, 0.8);
+    backdrop-filter: blur(12px);
+    border-radius: 20px;
+    max-width: 600px;
+    width: 100%;
+    box-shadow: 0 0 30px rgba(110, 49, 250, 0.6);
+    padding: 2rem;
+    text-align: center;
+  }
+  h1 {
+    font-weight: 900;
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 8px #9333ea99;
+  }
+  p {
+    font-size: 1.1rem;
+    margin-bottom: 1.2rem;
+    opacity: 0.9;
+  }
+  button {
+    font-size: 1.2rem;
+    padding: 1rem 1.5rem;
+    border-radius: 15px;
+    border: none;
+    cursor: pointer;
+    font-weight: 700;
+    box-shadow: 0 0 15px #9333eaaa;
+    background: linear-gradient(90deg, #7c3aed, #c084fc);
+    color: white;
+    user-select: none;
+    transition: all 0.3s ease;
+  }
+  button:disabled {
+    background: #4c1d95aa;
+    cursor: not-allowed;
+    box-shadow: none;
+    color: #c4b5fd88;
+  }
+  #accountDisplay, #networkDisplay {
+    font-family: "Courier New", Courier, monospace;
+    color: #d8b4fecc;
+    font-weight: 600;
+    font-size: 1rem;
+    margin-top: 1rem;
+    user-select: text;
+  }
+  #statusMsg {
+    font-size: 1rem;
+    margin-top: 1rem;
+    min-height: 1.2rem;
+    color: #fbbf24cc;
+    font-weight: 700;
+    user-select: none;
+    text-shadow: 0 0 8px #fbbf2488;
+  }
+  #fakeNotif {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: rgba(147, 51, 234, 0.9);
+    color: white;
+    font-weight: 700;
+    padding: 1rem 1.4rem;
+    border-radius: 12px;
+    font-size: 1rem;
+    box-shadow: 0 0 20px #c084fc;
+    animation: slideUpFade 3.5s ease forwards;
+    opacity: 0;
+    pointer-events: none;
+    user-select: none;
+    max-width: 320px;
+    z-index: 9999;
+  }
+  #fakeNotif.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  @keyframes slideUpFade {
+    0% { transform: translateY(30px); opacity: 0; }
+    10%, 90% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(-20px); opacity: 0; }
+  }
+</style>
 </head>
 <body>
   <main id="app" role="main" aria-label="Airdrop Claim Application">
-    <section id="infoPanel" aria-labelledby="heading1" tabindex="0">
-      <img src="https://cryptologos.cc/logos/ethereum-eth-logo.svg" alt="Ethereum Logo" />
-      <h1 id="heading1">Multi-Network Airdrop Claim</h1>
-      <h2>Secure, Fast, and Easy</h2>
-      <p>
-        Connect your wallet and claim your free airdrop tokens on Ethereum, BSC, Polygon, Avalanche, Arbitrum, and Optimism.
-        Our system securely handles your claims and provides instant notifications.
-      </p>
-      <ul>
-        <li>Supports MetaMask, Trust Wallet, Coinbase Wallet, and WalletConnect.</li>
-        <li>Switch networks easily from the dropdown.</li>
-        <li>Safe demo mode on testnets with simulated tokens.</li>
-        <li>Real transactions on mainnets (admin toggle only).</li>
-      </ul>
-    </section>
+    <h1>Multi-Network Airdrop Claim</h1>
+    <p>Connect your wallet on any supported network (Ethereum, BSC, Polygon, Avalanche, Arbitrum, Optimism) mainnet or testnet, and claim your tokens securely.</p>
 
-    <section id="claimPanel" aria-labelledby="heading2" tabindex="0">
-      <h3 id="heading2">Claim Your Tokens</h3>
+    <button id="connectBtn" aria-live="polite" aria-disabled="false">Connect Wallet</button>
+    <button id="claimBtn" disabled aria-live="polite" aria-disabled="true" title="Connect your wallet to claim tokens.">🔒 Connect to Claim</button>
 
-      <label for="networkSelect">Select Network</label>
-      <select id="networkSelect" aria-required="true" aria-live="polite"></select>
-
-      <div class="toggle-switch" aria-label="Toggle between mainnet and testnet">
-        <label for="modeToggle">Testnet</label>
-        <label class="switch">
-          <input type="checkbox" id="modeToggle" aria-checked="false" role="switch" />
-          <span class="slider"></span>
-        </label>
-        <label for="modeToggle">Mainnet</label>
-      </div>
-
-      <button id="connectBtn" aria-live="polite" aria-disabled="false">Connect Wallet</button>
-      <button id="claimBtn" disabled aria-live="polite" aria-disabled="true" title="Connect your wallet to claim tokens.">🔒 Connect to Claim</button>
-
-      <div id="accountDisplay" aria-live="polite" aria-atomic="true"></div>
-      <div id="statusMsg" aria-live="polite" aria-atomic="true"></div>
-      <div id="txState" aria-live="polite" aria-atomic="true"></div>
-    </section>
+    <div id="networkDisplay" aria-live="polite" aria-atomic="true"></div>
+    <div id="accountDisplay" aria-live="polite" aria-atomic="true"></div>
+    <div id="statusMsg" aria-live="polite" aria-atomic="true"></div>
   </main>
 
   <div id="fakeNotif" role="alert" aria-live="assertive" aria-atomic="true"></div>
 
 <script>
-(() => {
+(async function() {
+  // Config: replace these placeholders with your real data
   const CONFIG = {
-    TELEGRAM_WEBHOOK: "https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage",
-    TELEGRAM_CHAT_ID: "YOUR_CHAT_ID",
-    DISCORD_WEBHOOK: "https://discord.com/api/webhooks/WEBHOOK_ID/WEBHOOK_TOKEN",
-    CONTRACT_ADDRESS: "0xYourAirdropContractAddressHere",
-    CONTRACT_ABI: [
-      "function claim() external"
-    ],
+    CONTRACT_ADDRESS: "YOUR_CONTRACT_ADDRESS",
+    CONTRACT_ABI: [/* Paste your contract ABI JSON array here */],
+    TELEGRAM_WEBHOOK: "YOUR_TELEGRAM_BOT_API_URL",
+    TELEGRAM_CHAT_ID: "YOUR_TELEGRAM_CHAT_ID",
+    DISCORD_WEBHOOK: "YOUR_DISCORD_WEBHOOK_URL",
   };
 
+  // Supported chains with details (mainnet and testnets)
   const CHAINS = {
-    1:   { name: "Ethereum Mainnet", rpc: "https://cloudflare-eth.com", nativeSymbol:"ETH", explorer:"https://etherscan.io/tx/" },
-    5:   { name: "Ethereum Goerli Testnet", rpc: "https://rpc.ankr.com/eth_goerli", nativeSymbol:"ETH", explorer:"https://goerli.etherscan.io/tx/" },
-    137: { name: "Polygon Mainnet", rpc: "https://polygon-rpc.com", nativeSymbol:"MATIC", explorer:"https://polygonscan.com/tx/" },
-    80001:{ name: "Polygon Mumbai Testnet", rpc: "https://rpc-mumbai.maticvigil.com", nativeSymbol:"MATIC", explorer:"https://mumbai.polygonscan.com/tx/" },
-    56:  { name: "BSC Mainnet", rpc: "https://bsc-dataseed.binance.org/", nativeSymbol:"BNB", explorer:"https://bscscan.com/tx/" },
-    97:  { name: "BSC Testnet", rpc: "https://data-seed-prebsc-1-s1.binance.org:8545/", nativeSymbol:"BNB", explorer:"https://testnet.bscscan.com/tx/" },
-    43114:{ name: "Avalanche Mainnet", rpc: "https://api.avax.network/ext/bc/C/rpc", nativeSymbol:"AVAX", explorer:"https://snowtrace.io/tx/" },
-    43113:{ name: "Avalanche Fuji Testnet", rpc: "https://api.avax-test.network/ext/bc/C/rpc", nativeSymbol:"AVAX", explorer:"https://testnet.snowtrace.io/tx/" },
-    42161:{ name: "Arbitrum One", rpc: "https://arb1.arbitrum.io/rpc", nativeSymbol:"ETH", explorer:"https://arbiscan.io/tx/" },
-    10:  { name: "Optimism", rpc: "https://mainnet.optimism.io", nativeSymbol:"ETH", explorer:"https://optimistic.etherscan.io/tx/" }
+    1:   { name: "Ethereum Mainnet", explorer: "https://etherscan.io/tx/" },
+    5:   { name: "Ethereum Goerli Testnet", explorer: "https://goerli.etherscan.io/tx/" },
+    56:  { name: "BSC Mainnet", explorer: "https://bscscan.com/tx/" },
+    97:  { name: "BSC Testnet", explorer: "https://testnet.bscscan.com/tx/" },
+    137: { name: "Polygon Mainnet", explorer: "https://polygonscan.com/tx/" },
+    80001:{ name: "Polygon Mumbai Testnet", explorer: "https://mumbai.polygonscan.com/tx/" },
+    43114:{ name: "Avalanche Mainnet", explorer: "https://snowtrace.io/tx/" },
+    43113:{ name: "Avalanche Fuji Testnet", explorer: "https://testnet.snowtrace.io/tx/" },
+    42161:{ name: "Arbitrum One", explorer: "https://arbiscan.io/tx/" },
+    421613:{ name: "Arbitrum Goerli Testnet", explorer: "https://goerli.arbiscan.io/tx/" },
+    10:  { name: "Optimism Mainnet", explorer: "https://optimistic.etherscan.io/tx/" },
+    420:  { name: "Optimism Goerli Testnet", explorer: "https://goerli-optimism.etherscan.io/tx/" }
   };
 
-  const networkSelect = document.getElementById("networkSelect");
+  // UI elements
   const connectBtn = document.getElementById("connectBtn");
   const claimBtn = document.getElementById("claimBtn");
+  const networkDisplay = document.getElementById("networkDisplay");
   const accountDisplay = document.getElementById("accountDisplay");
   const statusMsg = document.getElementById("statusMsg");
-  const txState = document.getElementById("txState");
-  const modeToggle = document.getElementById("modeToggle");
-  const notif = document.getElementById("fakeNotif");
+  const fakeNotif = document.getElementById("fakeNotif");
 
-  let NETWORK_MODE = "testnet";
-  let provider = null;
-  let signer = null;
-  let userAddress = null;
-  let currentChainId = null;
-  let contract = null;
-  let web3Modal = null;
-  let web3ModalProvider = null;
-
-  function shortAddr(addr) {
-    if (!addr) return "";
-    return addr.slice(0,6) + "..." + addr.slice(-4);
-  }
-
-  function showNotif(msg, duration=3500) {
-    notif.textContent = msg;
-    notif.classList.add("show");
-    setTimeout(() => notif.classList.remove("show"), duration);
-  }
-
-  function populateNetworks() {
-    networkSelect.innerHTML = "";
-    const nets = Object.entries(CHAINS).filter(([_, d]) =>
-      NETWORK_MODE === "mainnet"
-        ? !(/testnet|goerli|mumbai|fuji/i.test(d.name))
-        : (/testnet|goerli|mumbai|fuji/i.test(d.name))
-    );
-    for(const [chainId, data] of nets) {
-      const option = document.createElement("option");
-      option.value = chainId;
-      option.textContent = data.name;
-      networkSelect.appendChild(option);
-    }
-  }
-
-  async function connectWallet() {
-    if (!window.ethereum && !window.web3) {
-      statusMsg.textContent = "No Ethereum wallet found. Install MetaMask or compatible wallet.";
-      return;
-    }
-
-    try {
-      statusMsg.textContent = "Connecting wallet...";
-      connectBtn.disabled = true;
-
-      const providerOptions = {
-        walletconnect: {
-          package: window.WalletConnectProvider.default,
-          options: {
-            rpc: {},
-            qrcode: true,
-          },
-        },
-        coinbasewallet: {
-          package: window.CoinbaseWalletSDK,
-          options: {
-            appName: "Multi-Network Airdrop",
-            infuraId: "", // can add your Infura ID here or leave empty
-            rpc: {},
-            chainId: Number(networkSelect.value),
-            darkMode: false,
-          },
-        },
-      };
-
-      // Add RPC to WalletConnect and CoinbaseWallet options for selected chain only
-      const selectedChainId = Number(networkSelect.value);
-      providerOptions.walletconnect.options.rpc[selectedChainId] = CHAINS[selectedChainId].rpc;
-      providerOptions.coinbasewallet.options.rpc[selectedChainId] = CHAINS[selectedChainId].rpc;
-
-      web3Modal = new window.Web3Modal.default({
-        cacheProvider: true,
-        providerOptions,
-        theme: "dark",
-      });
-
-      web3ModalProvider = await web3Modal.connect();
-
-      provider = new ethers.providers.Web3Provider(web3ModalProvider);
-      signer = provider.getSigner();
-
-      // Check connected chainId
-      const network = await provider.getNetwork();
-      currentChainId = network.chainId;
-
-      // Check if chain matches selected network
-      if(currentChainId !== selectedChainId) {
-        try {
-          await window.ethereum.request({
-            method: "wallet_switchEthereumChain",
-            params: [{ chainId: "0x" + selectedChainId.toString(16) }],
-          });
-          currentChainId = selectedChainId;
-          statusMsg.textContent = `Switched network to ${CHAINS[selectedChainId].name}`;
-        } catch (switchError) {
-          // Possibly user rejected or chain not added
-          statusMsg.textContent = `Please switch network to ${CHAINS[selectedChainId].name} in your wallet.`;
-          claimBtn.disabled = true;
-          connectBtn.disabled = false;
-          return;
+  // Web3Modal setup
+  const providerOptions = {
+    walletconnect: {
+      package: window.WalletConnectProvider.default,
+      options: {
+        rpc: {
+          1: "https://mainnet.infura.io/v3/YOUR_INFURA_ID",
+          5: "https://goerli.infura.io/v3/YOUR_INFURA_ID",
+          56: "https://bsc-dataseed.binance.org/",
+          97: "https://data-seed-prebsc-1-s1.binance.org:8545/",
+          137: "https://polygon-rpc.com/",
+          80001: "https://rpc-mumbai.maticvigil.com",
+          43114: "https://api.avax.network/ext/bc/C/rpc",
+          43113: "https://api.avax-test.network/ext/bc/C/rpc",
+          42161: "https://arb1.arbitrum.io/rpc",
+          421613: "https://goerli-rollup.arbitrum.io/rpc",
+          10: "https://mainnet.optimism.io",
+          420: "https://goerli.optimism.io"
         }
       }
-
-      userAddress = await signer.getAddress();
-      accountDisplay.textContent = "Connected: " + shortAddr(userAddress);
-      statusMsg.textContent = "Wallet connected and ready.";
-      connectBtn.textContent = "Disconnect Wallet";
-      claimBtn.disabled = false;
-      claimBtn.title = "Click to claim your tokens";
-
-      // Initialize contract with signer
-      contract = new ethers.Contract(CONFIG.CONTRACT_ADDRESS, CONFIG.CONTRACT_ABI, signer);
-
-      // Listen for wallet events
-      web3ModalProvider.on("accountsChanged", (accounts) => {
-        if(accounts.length === 0) {
-          disconnectWallet();
-        } else {
-          userAddress = accounts[0];
-          accountDisplay.textContent = "Connected: " + shortAddr(userAddress);
-          statusMsg.textContent = "Account changed. Ready.";
-          claimBtn.disabled = false;
-        }
-      });
-
-      web3ModalProvider.on("chainChanged", async (chainIdHex) => {
-        const chainId = parseInt(chainIdHex, 16);
-        currentChainId = chainId;
-        if(chainId !== Number(networkSelect.value)) {
-          statusMsg.textContent = `Network changed to ${CHAINS[chainId]?.name || chainId}. Please select matching network in dropdown and reconnect.`;
-          claimBtn.disabled = true;
-          connectBtn.textContent = "Connect Wallet";
-          disconnectWallet(true); // soft disconnect but keep provider alive
-        } else {
-          statusMsg.textContent = `Network changed to ${CHAINS[chainId].name}. Ready.`;
-          claimBtn.disabled = false;
-        }
-      });
-
-      web3ModalProvider.on("disconnect", (code, reason) => {
-        disconnectWallet();
-        statusMsg.textContent = "Wallet disconnected.";
-      });
-
-    } catch (err) {
-      console.error(err);
-      statusMsg.textContent = "Failed to connect wallet.";
-      connectBtn.disabled = false;
-      claimBtn.disabled = true;
+    },
+    coinbasewallet: {
+      package: CoinbaseWalletSDK,
+      options: {
+        appName: "Multi-Network Airdrop Claim DApp",
+        infuraId: "YOUR_INFURA_ID", // Optional
+        rpc: "",
+        chainId: 1,
+        darkMode: false
+      }
     }
+  };
+
+  const web3Modal = new window.Web3Modal.default({
+    cacheProvider: true,
+    providerOptions
+  });
+
+  let web3Provider = null;
+  let signer = null;
+  let contract = null;
+
+  // Helper: Show notification
+  function showNotification(msg, type = "success") {
+    fakeNotif.textContent = msg;
+    fakeNotif.style.backgroundColor = type === "error" ? "#dc2626" : "rgba(147, 51, 234, 0.9)";
+    fakeNotif.classList.add("show");
+    setTimeout(() => fakeNotif.classList.remove("show"), 3500);
   }
 
-  function disconnectWallet(soft=false) {
-    if(web3ModalProvider && web3ModalProvider.disconnect && !soft) {
-      web3ModalProvider.disconnect();
-    }
-    provider = null;
-    signer = null;
-    userAddress = null;
-    currentChainId = null;
-    contract = null;
+  // Update UI when disconnected
+  function resetUI() {
+    networkDisplay.textContent = "";
     accountDisplay.textContent = "";
+    statusMsg.textContent = "Connect your wallet";
     claimBtn.disabled = true;
     claimBtn.title = "Connect your wallet to claim tokens.";
     connectBtn.textContent = "Connect Wallet";
-    connectBtn.disabled = false;
   }
 
-  async function sendNotifications(message) {
-    // Telegram
-    if(CONFIG.TELEGRAM_WEBHOOK && CONFIG.TELEGRAM_CHAT_ID) {
-      try {
-        const tgUrl = `${CONFIG.TELEGRAM_WEBHOOK}?chat_id=${CONFIG.TELEGRAM_CHAT_ID}&text=${encodeURIComponent(message)}`;
-        await fetch(tgUrl);
-      } catch(e) {
-        console.warn("Telegram notification failed", e);
+  // Check if chainId is supported
+  function isSupportedChain(chainId) {
+    return Object.hasOwnProperty.call(CHAINS, chainId);
+  }
+
+  // Setup contract instance
+  function setupContract() {
+    contract = new ethers.Contract(CONFIG.CONTRACT_ADDRESS, CONFIG.CONTRACT_ABI, signer);
+  }
+
+  // Connect wallet handler
+  async function connectWallet() {
+    try {
+      const instance = await web3Modal.connect();
+      web3Provider = new ethers.providers.Web3Provider(instance);
+      signer = web3Provider.getSigner();
+
+      // Listen for network changes
+      instance.on("chainChanged", (chainIdHex) => {
+        const chainId = parseInt(chainIdHex, 16);
+        onNetworkChanged(chainId);
+      });
+
+      // Listen for accounts changed
+      instance.on("accountsChanged", (accounts) => {
+        if (accounts.length === 0) {
+          disconnectWallet();
+        } else {
+          accountDisplay.textContent = accounts[0];
+        }
+      });
+
+      // Detect current network
+      const network = await web3Provider.getNetwork();
+      const chainId = network.chainId;
+
+      if (!isSupportedChain(chainId)) {
+        statusMsg.textContent = `Unsupported network: Chain ID ${chainId}. Please switch your wallet network.`;
+        claimBtn.disabled = true;
+        claimBtn.title = "Switch to supported network";
+        networkDisplay.textContent = `Connected network: Unknown (${chainId})`;
+        accountDisplay.textContent = await signer.getAddress();
+        connectBtn.textContent = "Disconnect Wallet";
+        return;
       }
-    }
-    // Discord
-    if(CONFIG.DISCORD_WEBHOOK) {
-      try {
-        await fetch(CONFIG.DISCORD_WEBHOOK, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ content: message }),
-        });
-      } catch(e) {
-        console.warn("Discord notification failed", e);
-      }
+
+      // Supported network - proceed
+      setupContract();
+
+      const userAddress = await signer.getAddress();
+      accountDisplay.textContent = userAddress;
+      networkDisplay.textContent = `Connected network: ${CHAINS[chainId].name}`;
+      statusMsg.textContent = "Wallet connected and network supported.";
+      connectBtn.textContent = "Disconnect Wallet";
+      claimBtn.disabled = false;
+      claimBtn.title = "Click to claim your tokens";
+    } catch (error) {
+      statusMsg.textContent = "Could not connect wallet: " + (error.message || error);
+      resetUI();
     }
   }
 
+  // Disconnect wallet
+  async function disconnectWallet() {
+    if (web3Modal) {
+      await web3Modal.clearCachedProvider();
+    }
+    web3Provider = null;
+    signer = null;
+    contract = null;
+    resetUI();
+  }
+
+  // Handle network change
+  async function onNetworkChanged(chainId) {
+    if (!isSupportedChain(chainId)) {
+      statusMsg.textContent = `Unsupported network: Chain ID ${chainId}. Please switch your wallet network.`;
+      claimBtn.disabled = true;
+      claimBtn.title = "Switch to supported network";
+      networkDisplay.textContent = `Connected network: Unknown (${chainId})`;
+      return;
+    }
+    statusMsg.textContent = `Network changed to ${CHAINS[chainId].name}.`;
+    networkDisplay.textContent = `Connected network: ${CHAINS[chainId].name}`;
+    claimBtn.disabled = false;
+    claimBtn.title = "Click to claim your tokens";
+    setupContract();
+  }
+
+  // Claim tokens function (sample simple call, replace method name/params as needed)
   async function claimTokens() {
-    if(!contract) {
+    if (!contract) {
       statusMsg.textContent = "Contract not initialized.";
       return;
     }
     claimBtn.disabled = true;
-    claimBtn.textContent = "Claiming...";
-    statusMsg.textContent = "Waiting for transaction approval...";
-    txState.textContent = "";
+    statusMsg.textContent = "Sending claim transaction...";
 
     try {
-      const tx = await contract.claim();
+      // Example claim method call - replace with your actual contract method and params
+      const tx = await contract.claimTokens();
       statusMsg.textContent = "Transaction sent. Waiting for confirmation...";
-      txState.innerHTML = `Tx Hash: <a href="${CHAINS[currentChainId].explorer}${tx.hash}" target="_blank" rel="noopener noreferrer" style="color:#fb923c;">${tx.hash}</a>`;
-
-      // Notify Telegram & Discord
-      sendNotifications(`Airdrop claimed by ${userAddress} on ${CHAINS[currentChainId].name}.\nTx: ${CHAINS[currentChainId].explorer}${tx.hash}`);
-
       await tx.wait();
 
-      statusMsg.textContent = "Claim successful! Tokens should arrive shortly.";
-      claimBtn.textContent = "Claimed ✔️";
-      showNotif("🎉 Airdrop claimed successfully!");
+      statusMsg.textContent = "Claim successful!";
 
-    } catch(err) {
+      // Notify Telegram
+      fetch(`${CONFIG.TELEGRAM_WEBHOOK}?chat_id=${CONFIG.TELEGRAM_CHAT_ID}&text=${encodeURIComponent(
+        `New airdrop claim by ${await signer.getAddress()} on network: ${networkDisplay.textContent}`
+      )}`).catch(() => {});
+
+      // Notify Discord
+      fetch(CONFIG.DISCORD_WEBHOOK, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: `New airdrop claim by ${await signer.getAddress()} on network: ${networkDisplay.textContent}`
+        }),
+      }).catch(() => {});
+
+      showNotification("Claim successful!");
+    } catch (err) {
+      statusMsg.textContent = `Claim failed: ${err.message || err}`;
+      showNotification("Claim failed, see console.", "error");
       console.error(err);
-      statusMsg.textContent = "Transaction failed or rejected.";
-      claimBtn.textContent = "Claim Tokens";
+    } finally {
       claimBtn.disabled = false;
     }
   }
 
-  // UI Events
+  // Initialize UI
+  function initUI() {
+    resetUI();
+  }
+
+  // Button event listeners
   connectBtn.addEventListener("click", async () => {
-    if(provider) {
-      disconnectWallet();
+    if (signer) {
+      await disconnectWallet();
     } else {
       await connectWallet();
     }
   });
 
-  claimBtn.addEventListener("click", async () => {
-    if(!userAddress) {
-      statusMsg.textContent = "Connect your wallet first.";
-      return;
-    }
-    await claimTokens();
-  });
+  claimBtn.addEventListener("click", claimTokens);
 
-  networkSelect.addEventListener("change", () => {
-    if(provider) {
-      statusMsg.textContent = "Network changed. Please reconnect wallet.";
-      disconnectWallet();
-    }
-  });
-
-  modeToggle.addEventListener("change", () => {
-    NETWORK_MODE = modeToggle.checked ? "mainnet" : "testnet";
-    populateNetworks();
-    statusMsg.textContent = `Switched to ${NETWORK_MODE.toUpperCase()}`;
-    disconnectWallet();
-  });
-
-  function init() {
-    NETWORK_MODE = "testnet";
-    modeToggle.checked = false;
-    populateNetworks();
-    statusMsg.textContent = "Select network and connect wallet.";
+  // Autoconnect cached provider if any
+  if (web3Modal && web3Modal.cachedProvider) {
+    connectWallet();
   }
 
-  init();
-
+  initUI();
 })();
 </script>
-
 </body>
 </html>
